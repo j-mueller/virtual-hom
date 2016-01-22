@@ -25,7 +25,7 @@ stack setup
 stack build
 ```
 
-To generate the haddocks, run `stack --stack-yaml stack-ghc.yaml haddock`
+To generate the haddocks, run `stack --stack-yaml stack-ghc.yaml haddock`. To build the examples, run `stack build --flag virtual-hom:examples`
 
 ## License
 

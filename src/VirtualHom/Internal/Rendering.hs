@@ -47,7 +47,7 @@ prepare opts new = runState go opts where
 
 renderingOptions :: Text -> RenderingOptions
 renderingOptions = RenderingOptions ids Nothing where
-  ids = fmap ((<>) "hldb-" . T.pack . show) [1..] -- infinite list of IDs
+  ids = fmap ((<>) "virtual-hom-" . T.pack . show) [1..] -- infinite list of IDs
 
 
 -- | The actual `diff` algorithm - compare the two `Element`s top-down to see

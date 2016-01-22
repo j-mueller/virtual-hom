@@ -1,0 +1,10 @@
+# This file exists only for generating the docs, the package itself will not
+# work outside of GHCJS (see FFI.hs for what is missing)
+resolver: lts-3.22
+packages:
+- '.'
+extra-deps: []
+flags:
+  virtual-hom:
+    js: false
+extra-package-dbs: []

@@ -1,5 +1,5 @@
 # virtual-hom
-Haskell+GHCJS implementation of [virtual-dom][https://github.com/Matt-Esch/virtual-dom]. It's not a direct port, I merely copied the idea (a virtual DOM with incremental updates).
+Haskell+GHCJS implementation of [virtual-dom](https://github.com/Matt-Esch/virtual-dom). It's not a direct port, I merely copied the idea (a virtual DOM with incremental updates).
 
 Comparison of virtual-dom parts with their equivalents in virtual-hom:
 
@@ -11,8 +11,9 @@ Comparison of virtual-dom parts with their equivalents in virtual-hom:
 
 The virtual-dom part is functional. However, since I've built this to support another project of mine, I haven't spent much time on providing a complete list of constructors for all dom elements. So it definitely needs some polishing before it can be released properly. In the meantime, you can build any kind of element directly, look at `Html.hs` for examples.
 
-TO DO:
-[ ] Add constructors for remaining HTML5 elements to `Html.hs`
+**TO DO:**
+
+[x] Add constructors for remaining HTML5 elements to `Html.hs`
 [ ] Improve callbacks (more callbacks, callbacks with arguments)
 [ ] Support a user-defined `key` property to allow re-ordering of child elements instead of mutation
 [ ] Remove `lens` dependency?

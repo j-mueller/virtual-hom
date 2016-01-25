@@ -7,7 +7,9 @@ module VirtualHom.Element(
   content,
   -- * Callbacks
   Callbacks,
-  onClick
+  click,
+  change,
+  input
   ) where
 
 import VirtualHom.Internal.Element

@@ -112,11 +112,19 @@ diffChildren w (x:xs) (y:ys) = (firstDiff <> restDiffs, firstSubst <> restSubst)
   newPos = InsertAfter $ maybe (y^.elemID) id $ M.lookup (y^.elemID) firstSubst
 
 changeCallbacks :: Callbacks ca -> Callbacks cb -> ElementID -> [RenderingAction cb a]
-changeCallbacks old new i = [onclick] where
-  onclick = case (old^.onClick, new^.onClick) of
+changeCallbacks old new i = [clickE, changeE, inputE] where
+  changeE = case (old^.change, new^.change) of
+    (Nothing, Nothing) -> NoAction
+    (Just _,  Nothing) -> RemoveCallback i "change"
+    (_,       Just a)  -> SetCallback i "change" a
+  clickE = case (old^.click, new^.click) of
     (Nothing, Nothing) -> NoAction
     (Just _,  Nothing) -> RemoveCallback i "onclick"
     (_,       Just a)  -> SetCallback i "onclick" a
+  inputE = case (old^.input, new^.input) of
+    (Nothing, Nothing) -> NoAction
+    (Just _,  Nothing) -> RemoveCallback i "input"
+    (_,       Just a)  -> SetCallback i "input" a
 
 -- | Takes the map with old attributes and the map with new attributes and
 -- generates actions that will transform an element with the first set of

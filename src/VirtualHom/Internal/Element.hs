@@ -11,6 +11,7 @@ module VirtualHom.Internal.Element where
 import           Control.Applicative
 import           Control.Lens hiding (children)
 import           Control.Monad.Cont
+import           Data.Bifunctor
 import           Data.Foldable
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
@@ -20,14 +21,16 @@ import qualified Data.Text as T
 
 -- | Collection of callbacks of an element
 data Callbacks cb = Callbacks{
-  _onClick :: Maybe cb
+  _click :: Maybe cb,
+  _change :: Maybe cb,
+  _input :: Maybe cb
   }
   deriving (Functor, Foldable, Traversable)
 
 makeLenses ''Callbacks
 
 emptyCb :: Callbacks cb
-emptyCb = Callbacks Nothing
+emptyCb = Callbacks Nothing Nothing Nothing
 
 data Elem cb a = Elem{
   _elementType :: !Text,
@@ -41,9 +44,8 @@ data Elem cb a = Elem{
 
 makeLenses ''Elem
 
-type ElementID = Text
-type ElementType = Text
-type VirtualElem = Elem () ElementID -- an element whose callbacks are of type ()
+instance Bifunctor Elem where
+  bimap f g = mapCallbacks f . fmap g
 
 -- | Transform the callbacks in an Elem
 mapCallbacks :: (cb -> cc) -> Elem cb a -> Elem cc a
@@ -51,6 +53,10 @@ mapCallbacks f elm = elm{
   _children  = fmap (mapCallbacks f) $ elm^.children,
   _callbacks = fmap f $ elm^.callbacks
   }
+
+type ElementID = Text
+type ElementType = Text
+type VirtualElem = Elem () ElementID -- an element whose callbacks are of type ()
 
 -- | Create an element with the specified type
 elm :: Text -> Elem cb ()

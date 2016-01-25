@@ -1,7 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
 import Control.Lens hiding (children, transform)
@@ -11,23 +8,23 @@ import qualified Data.Text as T
 import Prelude hiding (div)
 
 import VirtualHom.Element
-import VirtualHom.Html
+import VirtualHom.Html hiding (content, main)
 import VirtualHom.Rendering(renderingOptions)
 import VirtualHom.Bootstrap(container, row, btnDefault)
 import VirtualHom.View(View, renderUI)
 
 theUI :: View Identity Int
-theUI i = container & children .~ [
+theUI i = [container & children .~ [
     row & children .~ [
       h1 "Hello, world",
-      p "I am a paragraph!",
-      p ("I have been clicked " <> (T.pack $ show i) <> " times"),
+      p & content .~ "I am a paragraph!",
+      p & content .~ ("I have been clicked " <> (T.pack $ show i) <> " times"),
       if (i <= 5)
       then btnDefault &
         content .~ "Submit" &
-        callbacks . onClick ?~ return . succ
+        callbacks . click ?~ return . succ
       else div]
-    ]
+    ]]
 
 main :: IO ()
 main = do

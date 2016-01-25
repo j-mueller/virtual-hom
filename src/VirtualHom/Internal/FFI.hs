@@ -35,7 +35,7 @@ renderAction a = case a of
     _ <- js_appendChild elm t
     _ <- sequence $ fmap (uncurry $ js_setAttribute elm) $ fmap ((,) <$> textToJSString . fst <*> textToJSString . snd) $ M.toList $ def^.attributes
     _ <- js_setId elm $ textToJSString $ view elemID def
-    _ <- maybe (return ()) (\c -> asyncCallback1 (const c) >>= js_setOnClick elm) $ def^.callbacks.onClick
+    _ <- maybe (return ()) (\c -> asyncCallback1 (const c) >>= js_setOnClick elm) $ def^.callbacks.click
     case p of
       InsertBefore e -> js_insertBefore elm (textToJSString e)
       InsertAfter e  -> js_insertAfter  elm (textToJSString e)

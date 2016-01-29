@@ -7,6 +7,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module VirtualHom.Internal.Rendering where
 
 import           Control.Applicative
@@ -22,6 +23,8 @@ import qualified Data.Text as T
 
 import           VirtualHom.Internal.Element
 import qualified VirtualHom.Internal.FFI as FFI
+
+import Prelude hiding (error)
 
 data RenderingOptions = RenderingOptions{
   _remainingIDs :: [Text],
@@ -112,19 +115,38 @@ diffChildren w (x:xs) (y:ys) = (firstDiff <> restDiffs, firstSubst <> restSubst)
   newPos = InsertAfter $ maybe (y^.elemID) id $ M.lookup (y^.elemID) firstSubst
 
 changeCallbacks :: Callbacks ca -> Callbacks cb -> ElementID -> [RenderingAction cb a]
-changeCallbacks old new i = [clickE, changeE, inputE] where
-  changeE = case (old^.change, new^.change) of
-    (Nothing, Nothing) -> NoAction
-    (Just _,  Nothing) -> RemoveCallback i "change"
-    (_,       Just a)  -> SetCallback i "change" a
-  clickE = case (old^.click, new^.click) of
-    (Nothing, Nothing) -> NoAction
-    (Just _,  Nothing) -> RemoveCallback i "click"
-    (_,       Just a)  -> SetCallback i "click" a
-  inputE = case (old^.input, new^.input) of
-    (Nothing, Nothing) -> NoAction
-    (Just _,  Nothing) -> RemoveCallback i "input"
-    (_,       Just a)  -> SetCallback i "input" a
+changeCallbacks old new i = [
+  on (old^.blur)   (new^.blur)   "blur",
+  on (old^.click)  (new^.click)  "click",
+  on (old^.change) (new^.change) "change",
+  on (old^.contextmenu) (new^.contextmenu) "contextmenu",
+  on (old^.dblclick) (new^.dblclick) "dblclick",
+  on (old^.error) (new^.error) "error",
+  on (old^.focus) (new^.focus) "focus",
+  on (old^.focusin) (new^.focusin) "focusin",
+  on (old^.focusout) (new^.focusout) "focusout",
+  on (old^.hover) (new^.hover) "hover",
+  on (old^.keydown) (new^.keydown) "keydown",
+  on (old^.keypress) (new^.keypress) "keypress",
+  on (old^.keyup) (new^.keyup) "keyup",
+  on (old^.load) (new^.load) "load",
+  on (old^.mousedown)  (new^.mousedown)  "mousedown",
+  on (old^.mouseenter)  (new^.mouseenter)  "mouseenter",
+  on (old^.mouseleave)  (new^.mouseleave)  "mouseleave",
+  on (old^.mousemove)  (new^.mousemove)  "mousemove",
+  on (old^.mouseout)  (new^.mouseout)  "mouseout",
+  on (old^.mouseover)  (new^.mouseover)  "mouseover",
+  on (old^.mouseup)  (new^.mouseup)  "mouseup",
+  on (old^.ready)  (new^.ready)  "ready",
+  on (old^.resize)  (new^.resize)  "resize",
+  on (old^.scroll)  (new^.scroll)  "scroll",
+  on (old^.select)  (new^.select)  "select",
+  on (old^.submit)  (new^.submit)  "submit"
+  ] where
+    on o n f = case (o, n) of
+      (Nothing, Nothing) -> NoAction
+      (Just _,  Nothing) -> RemoveCallback i f
+      (_,       Just a)  -> SetCallback i f a
 
 -- | Takes the map with old attributes and the map with new attributes and
 -- generates actions that will transform an element with the first set of

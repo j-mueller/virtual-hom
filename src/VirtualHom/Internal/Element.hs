@@ -21,16 +21,39 @@ import qualified Data.Text as T
 
 -- | Collection of callbacks of an element
 data Callbacks cb = Callbacks{
+  _blur :: Maybe cb,
   _click :: Maybe cb,
   _change :: Maybe cb,
-  _input :: Maybe cb
+  _contextmenu :: Maybe cb,
+  _dblclick :: Maybe cb,
+  _error :: Maybe cb,
+  _focus :: Maybe cb,
+  _focusin :: Maybe cb,
+  _focusout :: Maybe cb,
+  _hover :: Maybe cb,
+  _keydown :: Maybe cb,
+  _keypress :: Maybe cb,
+  _keyup :: Maybe cb,
+  _load :: Maybe cb,
+  _mousedown :: Maybe cb,
+  _mouseenter :: Maybe cb,
+  _mouseleave :: Maybe cb,
+  _mousemove :: Maybe cb,
+  _mouseout :: Maybe cb,
+  _mouseover :: Maybe cb,
+  _mouseup :: Maybe cb,
+  _ready :: Maybe cb,
+  _resize :: Maybe cb,
+  _scroll :: Maybe cb,
+  _select :: Maybe cb,
+  _submit :: Maybe cb
   }
   deriving (Functor, Foldable, Traversable)
 
 makeLenses ''Callbacks
 
 emptyCb :: Callbacks cb
-emptyCb = Callbacks Nothing Nothing Nothing
+emptyCb = Callbacks Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 data Elem cb a = Elem{
   _elementType :: !Text,

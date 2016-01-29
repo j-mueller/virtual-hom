@@ -7,9 +7,33 @@ module VirtualHom.Element(
   content,
   -- * Callbacks
   Callbacks,
+  blur,
   click,
   change,
-  input
+  contextmenu,
+  dblclick,
+  error,
+  focus,
+  focusin,
+  focusout,
+  hover,
+  keydown,
+  keypress,
+  keyup,
+  load,
+  mousedown,
+  mouseenter,
+  mouseleave,
+  mousemove,
+  mouseout,
+  mouseover,
+  mouseup,
+  ready,
+  resize,
+  scroll,
+  select,
+  submit
   ) where
 
 import VirtualHom.Internal.Element
+import Prelude hiding (error)

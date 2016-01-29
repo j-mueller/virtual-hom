@@ -54,11 +54,11 @@ instance Commute Person where
 type Form m a = View m (FormValue a)
 
 -- | A text input field that produces a value
-validatingTextInput :: Monad m => (Text -> FormValue a) -> Text -> Form m (Text, a)
-validatingTextInput f l (v,a) = result where
-  errorMarker = either (const "has-error") (const "") $ f v
+validatingTextInput :: Monad m => (Text -> FormValue a) -> Text -> Form m a
+validatingTextInput f l a = [result] where
+  errorMarker = either (const "has-error") (const "") a
   result = div
-    & attributes . at "class" ?~ ("form-group" <> errorMarker)
+    & attributes . at "class" ?~ ("form-group " <> errorMarker)
     & children .~ [
       label
         & attributes . at "class" ?~ "col-sm-2 control-label"
@@ -68,24 +68,21 @@ validatingTextInput f l (v,a) = result where
         & children .~ [
         input
           & attributes . at "class" ?~ "form-control"
-          & attributes . at "type" ?~ "text"
-          -- & callbacks . E.change ?~ return . f
+          & attributes . at "type"  ?~ "text"
+          & callbacks . E.change ?~ return
           -- & callbacks . E.input ?~ return
         ]
     ]
 
-theUI :: Form Identity (FormValue Text)
-theUI t = result where
-  validate = not . T.null
+theUI :: Form Identity Text
+theUI t = [result] where
+  validate t = if (T.null t) then Left "Must not be empty" else Right t
   result = container & children .~ [
-      row & children .~ [
-        h1 "Validating inputs",
-        validatingTextInput validate "First name" ("", t)
-      ]
+      row & children .~ [h1 "Validating inputs"] ++ (validatingTextInput validate "First name" t)
     ]
 
 main :: IO ()
 main = do
   let options = renderingOptions "virtual-hom"
   let interp = return . runIdentity
-  renderUI options theUI interp ""
+  renderUI options theUI interp (Left "Must not be empty")

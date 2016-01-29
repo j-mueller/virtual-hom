@@ -116,7 +116,7 @@ module VirtualHom.Html(
   template
   ) where
 
-import VirtualHom.Internal.Element hiding (content, input)
+import VirtualHom.Internal.Element hiding (content, input, select)
 import qualified VirtualHom.Internal.Element as E
 
 import Control.Lens hiding (pre, element)

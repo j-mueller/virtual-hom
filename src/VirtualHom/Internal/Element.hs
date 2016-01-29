@@ -19,41 +19,77 @@ import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
 
+-- Event data, see http://api.jquery.com/category/events/event-object/ for other data that we could get depending on event type
+
+data GenericEventData = GenericEventData{ _timestamp :: Int, _pageX :: Int, _pageY :: Int }
+  deriving (Eq, Ord, Show)
+makeLenses ''GenericEventData
+
+data ValueChangedData = ValueChangedData{ _genericData :: GenericEventData, _value :: Text }
+  deriving (Eq, Ord, Show)
+makeLenses ''ValueChangedData
+
 -- | Collection of callbacks of an element
 data Callbacks cb = Callbacks{
-  _blur :: Maybe cb,
-  _click :: Maybe cb,
-  _change :: Maybe cb,
-  _contextmenu :: Maybe cb,
-  _dblclick :: Maybe cb,
-  _error :: Maybe cb,
-  _focus :: Maybe cb,
-  _focusin :: Maybe cb,
-  _focusout :: Maybe cb,
-  _hover :: Maybe cb,
-  _keydown :: Maybe cb,
-  _keypress :: Maybe cb,
-  _keyup :: Maybe cb,
-  _load :: Maybe cb,
-  _mousedown :: Maybe cb,
-  _mouseenter :: Maybe cb,
-  _mouseleave :: Maybe cb,
-  _mousemove :: Maybe cb,
-  _mouseout :: Maybe cb,
-  _mouseover :: Maybe cb,
-  _mouseup :: Maybe cb,
-  _ready :: Maybe cb,
-  _resize :: Maybe cb,
-  _scroll :: Maybe cb,
-  _select :: Maybe cb,
-  _submit :: Maybe cb
+  _blur :: Maybe (GenericEventData -> cb),
+  _click :: Maybe (GenericEventData -> cb),
+  _change :: Maybe (ValueChangedData -> cb),
+  _contextmenu :: Maybe (GenericEventData -> cb),
+  _dblclick :: Maybe (GenericEventData -> cb),
+  _error :: Maybe (GenericEventData -> cb),
+  _focus :: Maybe (GenericEventData -> cb),
+  _focusin :: Maybe (GenericEventData -> cb),
+  _focusout :: Maybe (GenericEventData -> cb),
+  _hover :: Maybe (GenericEventData -> cb),
+  _keydown :: Maybe (GenericEventData -> cb),
+  _keypress :: Maybe (GenericEventData -> cb),
+  _keyup :: Maybe (GenericEventData -> cb),
+  _load :: Maybe (GenericEventData -> cb),
+  _mousedown :: Maybe (GenericEventData -> cb),
+  _mouseenter :: Maybe (GenericEventData -> cb),
+  _mouseleave :: Maybe (GenericEventData -> cb),
+  _mousemove :: Maybe (GenericEventData -> cb),
+  _mouseout :: Maybe (GenericEventData -> cb),
+  _mouseover :: Maybe (GenericEventData -> cb),
+  _mouseup :: Maybe (GenericEventData -> cb),
+  _ready :: Maybe (GenericEventData -> cb),
+  _resize :: Maybe (GenericEventData -> cb),
+  _scroll :: Maybe (GenericEventData -> cb),
+  _select :: Maybe (GenericEventData -> cb),
+  _submit :: Maybe (GenericEventData -> cb)
   }
-  deriving (Functor, Foldable, Traversable)
+  deriving (Functor)
 
 makeLenses ''Callbacks
 
 emptyCb :: Callbacks cb
-emptyCb = Callbacks Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+emptyCb = Callbacks
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
+            Nothing
 
 data Elem cb a = Elem{
   _elementType :: !Text,
@@ -90,24 +126,14 @@ elm t = Elem t mempty mempty [] () emptyCb
 data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
   deriving Show
 
-data RenderingAction c e =
+data RenderingAction c =
     DeleteElement{ _id :: ElementID }
-  | NewElement{ _insertWhere :: InsertWhere, _elemDef :: e }
+  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _id :: ElementID}
   | SetTextContent{ _id :: ElementID, _text :: Text }
   | RemoveAttribute{ _id :: ElementID, _attribute :: Text }
   | SetAttribute{ _id :: ElementID, _attribute :: Text, _attrValue :: Text }
-  | SetCallback{ _id :: ElementID, _callbackName :: Text, _callback :: c }
+  | SetGenericEventCallback{ _id :: ElementID, _callbackName :: Text, _genericEventCallback :: GenericEventData -> c }
+  | SetValueCallback{ _id :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
   | RemoveCallback{ _id :: ElementID, _callbackName :: Text }
   | NoAction
-  deriving (Functor, Foldable, Traversable)
-
-mapCbs :: (c -> d) -> RenderingAction c (Elem c a) -> RenderingAction d (Elem d a)
-mapCbs f = mapCb . fmap (mapCallbacks f) where
-  mapCb (DeleteElement i)     = DeleteElement i
-  mapCb (NewElement i d)      = NewElement i d
-  mapCb (SetTextContent i t)  = SetTextContent i t
-  mapCb (RemoveAttribute i a) = RemoveAttribute i a
-  mapCb (SetAttribute i a v)  = SetAttribute i a v
-  mapCb (SetCallback i n c)   = SetCallback i n $ f c
-  mapCb (RemoveCallback i n)  = RemoveCallback i n
-  mapCb NoAction = NoAction
+  deriving (Functor)

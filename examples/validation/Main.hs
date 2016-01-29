@@ -54,7 +54,7 @@ instance Commute Person where
 type Form m a = View m (FormValue a)
 
 -- | A text input field that produces a value
-validatingTextInput :: Monad m => (Text -> FormValue a) -> Text -> Form m a
+validatingTextInput :: (Text -> FormValue a) -> Text -> Form IO a
 validatingTextInput f l a = [result] where
   errorMarker = either (const "has-error") (const "") a
   result = div
@@ -69,12 +69,11 @@ validatingTextInput f l a = [result] where
         input
           & attributes . at "class" ?~ "form-control"
           & attributes . at "type"  ?~ "text"
-          & callbacks . E.change ?~ return
-          -- & callbacks . E.input ?~ return
+          & callbacks . E.change ?~ (\e s -> (putStrLn $ show e) >> return s)
         ]
     ]
 
-theUI :: Form Identity Text
+theUI :: Form IO Text
 theUI t = [result] where
   validate t = if (T.null t) then Left "Must not be empty" else Right t
   result = container & children .~ [
@@ -84,5 +83,5 @@ theUI t = [result] where
 main :: IO ()
 main = do
   let options = renderingOptions "virtual-hom"
-  let interp = return . runIdentity
+  let interp = id
   renderUI options theUI interp (Left "Must not be empty")

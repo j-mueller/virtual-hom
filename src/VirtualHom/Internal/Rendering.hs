@@ -36,7 +36,7 @@ makeLenses ''RenderingOptions
 
 -- | Prepare a new version of the view (Elem ca ()) to be rendered, using the
 -- last known state from the RenderingOptions as a base line.
-prepare :: RenderingOptions ->  Elem ca () -> ([RenderingAction ca (Elem ca ElementID)], RenderingOptions)
+prepare :: RenderingOptions ->  Elem ca () -> ([RenderingAction ca], RenderingOptions)
 prepare opts new = runState go opts where
   go       = maybe makeNew (flip (diff target) new) old
   target   = InsertAsChildOf $ opts^.targetDivId
@@ -52,14 +52,13 @@ renderingOptions :: Text -> RenderingOptions
 renderingOptions = RenderingOptions ids Nothing where
   ids = fmap ((<>) "virtual-hom-" . T.pack . show) [1..] -- infinite list of IDs
 
-
 -- | The actual `diff` algorithm - compare the two `Element`s top-down to see
 -- where they differ
 diff :: MonadState RenderingOptions m =>
   InsertWhere -> -- ID of parent element (for inserting new elements)
   Elem () ElementID -> -- previous elem (diff baseline)
   Elem cb () -> -- new elem
-  m [RenderingAction cb (Elem cb ElementID)]
+  m [RenderingAction cb]
 diff p old new = do
   newWithIds <- traverse (const nextId) new
   let (result, substitutions) = diff' p old newWithIds
@@ -73,7 +72,7 @@ diff' ::
   InsertWhere ->
   Elem () ElementID ->
   Elem cb ElementID ->
-  ([RenderingAction cb (Elem cb ElementID)], Map ElementID ElementID)
+  ([RenderingAction cb], Map ElementID ElementID)
 diff' i old new
   | old^.elementType == new^.elementType = diffSameType old new
   | otherwise = (del:rest, M.empty) where
@@ -85,7 +84,7 @@ diff' i old new
 diffSameType ::
   Elem () ElementID -> -- Old
   Elem cb ElementID -> -- New
-  ([RenderingAction cb (Elem cb ElementID)], Map ElementID ElementID) -- ^ Actions to get from old to new
+  ([RenderingAction cb], Map ElementID ElementID) -- ^ Actions to get from old to new
 diffSameType old new = (contAct <> attrAct <> cbAct <> childAct, subst <> childSubst) where
   -- 1. the ID of old element should be kept
   targetId = old^.elemID
@@ -106,7 +105,7 @@ diffChildren ::
   InsertWhere ->
   [Elem () ElementID] ->
   [Elem cb ElementID] ->
-  ([RenderingAction cb (Elem cb ElementID)], Map ElementID ElementID)
+  ([RenderingAction cb], Map ElementID ElementID)
 diffChildren w [] xs   = (concat $ fmap (createNew w) xs, M.empty)
 diffChildren _   ys [] = (fmap (DeleteElement . view elemID) ys, M.empty)
 diffChildren w (x:xs) (y:ys) = (firstDiff <> restDiffs, firstSubst <> restSubst) where
@@ -114,44 +113,52 @@ diffChildren w (x:xs) (y:ys) = (firstDiff <> restDiffs, firstSubst <> restSubst)
   (restDiffs, restSubst ) = diffChildren newPos xs ys
   newPos = InsertAfter $ maybe (y^.elemID) id $ M.lookup (y^.elemID) firstSubst
 
-changeCallbacks :: Callbacks ca -> Callbacks cb -> ElementID -> [RenderingAction cb a]
+changeCallbacks ::
+  Callbacks ca
+  -> Callbacks cb
+  -> ElementID
+  -> [RenderingAction cb]
 changeCallbacks old new i = [
-  on (old^.blur)   (new^.blur)   "blur",
-  on (old^.click)  (new^.click)  "click",
-  on (old^.change) (new^.change) "change",
-  on (old^.contextmenu) (new^.contextmenu) "contextmenu",
-  on (old^.dblclick) (new^.dblclick) "dblclick",
-  on (old^.error) (new^.error) "error",
-  on (old^.focus) (new^.focus) "focus",
-  on (old^.focusin) (new^.focusin) "focusin",
-  on (old^.focusout) (new^.focusout) "focusout",
-  on (old^.hover) (new^.hover) "hover",
-  on (old^.keydown) (new^.keydown) "keydown",
-  on (old^.keypress) (new^.keypress) "keypress",
-  on (old^.keyup) (new^.keyup) "keyup",
-  on (old^.load) (new^.load) "load",
-  on (old^.mousedown)  (new^.mousedown)  "mousedown",
-  on (old^.mouseenter)  (new^.mouseenter)  "mouseenter",
-  on (old^.mouseleave)  (new^.mouseleave)  "mouseleave",
-  on (old^.mousemove)  (new^.mousemove)  "mousemove",
-  on (old^.mouseout)  (new^.mouseout)  "mouseout",
-  on (old^.mouseover)  (new^.mouseover)  "mouseover",
-  on (old^.mouseup)  (new^.mouseup)  "mouseup",
-  on (old^.ready)  (new^.ready)  "ready",
-  on (old^.resize)  (new^.resize)  "resize",
-  on (old^.scroll)  (new^.scroll)  "scroll",
-  on (old^.select)  (new^.select)  "select",
-  on (old^.submit)  (new^.submit)  "submit"
+  gen (old^.blur)   (new^.blur)   "blur",
+  gen (old^.click)  (new^.click)  "click",
+  val (old^.change) (new^.change) "change",
+  gen (old^.contextmenu) (new^.contextmenu) "contextmenu",
+  gen (old^.dblclick) (new^.dblclick) "dblclick",
+  gen (old^.error) (new^.error) "error",
+  gen (old^.focus) (new^.focus) "focus",
+  gen (old^.focusin) (new^.focusin) "focusin",
+  gen (old^.focusout) (new^.focusout) "focusout",
+  gen (old^.hover) (new^.hover) "hover",
+  gen (old^.keydown) (new^.keydown) "keydown",
+  gen (old^.keypress) (new^.keypress) "keypress",
+  gen (old^.keyup) (new^.keyup) "keyup",
+  gen (old^.load) (new^.load) "load",
+  gen (old^.mousedown)  (new^.mousedown)  "mousedown",
+  gen (old^.mouseenter)  (new^.mouseenter)  "mouseenter",
+  gen (old^.mouseleave)  (new^.mouseleave)  "mouseleave",
+  gen (old^.mousemove)  (new^.mousemove)  "mousemove",
+  gen (old^.mouseout)  (new^.mouseout)  "mouseout",
+  gen (old^.mouseover)  (new^.mouseover)  "mouseover",
+  gen (old^.mouseup)  (new^.mouseup)  "mouseup",
+  gen (old^.ready)  (new^.ready)  "ready",
+  gen (old^.resize)  (new^.resize)  "resize",
+  gen (old^.scroll)  (new^.scroll)  "scroll",
+  gen (old^.select)  (new^.select)  "select",
+  gen (old^.submit)  (new^.submit)  "submit"
   ] where
-    on o n f = case (o, n) of
+    val o n f = case (o, n) of
       (Nothing, Nothing) -> NoAction
       (Just _,  Nothing) -> RemoveCallback i f
-      (_,       Just a)  -> SetCallback i f a
+      (_,       Just a)  -> SetValueCallback i f a
+    gen o n f = case (o, n) of
+      (Nothing, Nothing) -> NoAction
+      (Just _,  Nothing) -> RemoveCallback i f
+      (_,       Just a)  -> SetGenericEventCallback i f a -- TODO: Diff types of callback
 
 -- | Takes the map with old attributes and the map with new attributes and
 -- generates actions that will transform an element with the first set of
 -- attributes to one with the second set of attributes
-changeAttributes :: Map Text Text -> Map Text Text -> ElementID -> [RenderingAction cb a]
+changeAttributes :: Map Text Text -> Map Text Text -> ElementID -> [RenderingAction cb]
 changeAttributes old new i = actions where
   actions = fmap snd $ M.toList $ inner old new
   inner = M.mergeWithKey join mapOld mapNew
@@ -162,11 +169,13 @@ changeAttributes old new i = actions where
   mapNew = M.mapWithKey $ \k v -> SetAttribute i k v
 
 -- | `RenderingAction`s for a single `Elem ElementID`
-createNew :: InsertWhere -> Elem cb ElementID -> [RenderingAction cb (Elem cb ElementID)]
+createNew :: InsertWhere -> Elem cb ElementID -> [RenderingAction cb]
 createNew i p = x:xs where
-  x  = NewElement i p
-  i' = InsertAsChildOf $ p^.elemID
-  xs = concat $ fmap (createNew i') $ p^.children
+  x    = NewElement i (p^.elementType) (p^.elemID)
+  cbs  = changeCallbacks emptyCb (p^.callbacks) (p^.elemID)
+  i'   = InsertAsChildOf $ p^.elemID
+  rest = concat $ fmap (createNew i') $ p^.children
+  xs   = cbs ++ rest
 
 
 -- | Get a new id

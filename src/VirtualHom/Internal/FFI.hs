@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 #ifndef __GHCJS__
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -8,6 +9,7 @@
 #ifdef __GHCJS__
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
 #endif
 module VirtualHom.Internal.FFI(
   -- * Rendering
@@ -17,25 +19,22 @@ module VirtualHom.Internal.FFI(
 
 import Control.Lens
 import qualified Data.Map.Strict as M
+import qualified Data.Text as T
 import Data.Monoid
 import VirtualHom.Internal.Element
 #ifdef __GHCJS__
 import Data.JSString.Text
 import GHCJS.Foreign.Callback
 import GHCJS.Prim
-import GHCJS.Types (JSString, JSVal)
+import GHCJS.Types (JSString, JSVal, JSRef)
 
 -- | Perform a single `RenderingAction`
-renderAction :: RenderingAction (IO ()) (Elem (IO ()) ElementID) -> IO ()
+renderAction :: RenderingAction (IO ()) -> IO ()
 renderAction a = case a of
-  NewElement p def -> do
-    _ <- putStrLn ("Creating new element with parent: " <> show p)
-    elm <- js_createElement $ textToJSString $ def^.elementType
-    t <- js_createTextNode $ textToJSString $ def^.content
-    _ <- js_appendChild elm t
-    _ <- sequence $ fmap (uncurry $ js_setAttribute elm) $ fmap ((,) <$> textToJSString . fst <*> textToJSString . snd) $ M.toList $ def^.attributes
-    _ <- js_setId elm $ textToJSString $ view elemID def
-    _ <- maybe (return ()) (\c -> asyncCallback1 (const c) >>= js_setOnClick elm) $ def^.callbacks.click
+  NewElement p tp i -> do
+    _ <- putStrLn ("Creating new element at position: " <> show p)
+    elm <- js_createElement $ textToJSString tp
+    _ <- js_setId elm $ textToJSString i
     case p of
       InsertBefore e -> js_insertBefore elm (textToJSString e)
       InsertAfter e  -> js_insertAfter  elm (textToJSString e)
@@ -50,13 +49,28 @@ renderAction a = case a of
   RemoveCallback i n -> do
     _ <- putStrLn $ "Removing callback " ++ (show n) ++ " from " ++ (show i)
     js_RemoveCallbackById (textToJSString i) $ textToJSString n
-  SetCallback i n c -> do
-    _ <- putStrLn $ "Changing callback " ++ (show n) ++ " of " ++ (show i)
-    (asyncCallback c) >>= js_setCallbackById (textToJSString i) (textToJSString n)
+  SetGenericEventCallback i n c -> do
+    _ <- putStrLn $ "Changing GenericEvent callback " ++ (show n) ++ " of " ++ (show i)
+    (asyncCallback1 $ \j -> (getGenericData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
+  SetValueCallback i n c -> do
+    -- TODO: Convert to ValueChangedData
+    _ <- putStrLn $ "Changing ValueChangedData callback " ++ (show n) ++ " of " ++ (show i)
+    (asyncCallback1 $ \j -> (getValueChangedData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
   SetTextContent i t -> do
     _ <- putStrLn $ "Set text content of " ++ (show i) ++ " to " ++ (show t)
     js_setTextContent (textToJSString i) (textToJSString t)
   SetAttribute i a v -> js_setAttributeById (textToJSString i) (textToJSString a) (textToJSString v)
+
+getValueChangedData :: JSVal -> IO ValueChangedData
+getValueChangedData e = ValueChangedData <$> gen <*> v where
+  gen = getGenericData e
+  v   = getProp e "target" >>= fmap (T.pack . fromJSString) . flip getProp "value"
+
+getGenericData :: JSVal -> IO GenericEventData
+getGenericData v = GenericEventData <$> ts <*> x <*> y where
+  ts = fmap fromJSInt $ getProp v "timestamp"
+  x  = fmap fromJSInt $ getProp v "pageX"
+  y  = fmap fromJSInt $ getProp v "pageY"
 
 foreign import javascript unsafe "document.getElementById($1)"
   js_getElementById :: JSString -> IO JSVal
@@ -104,14 +118,17 @@ foreign import javascript unsafe "document.getElementById($1)['textContent']=$2"
 foreign import javascript unsafe "$(document.getElementById($1)).on($2, $3)"
   js_setCallbackById :: JSString -> JSString -> Callback (IO ()) -> IO ()
 
+foreign import javascript unsafe "$(document.getElementById($1)).on($2, $3)"
+  js_setCallbackById1 :: JSString -> JSString -> Callback (JSVal -> IO ()) -> IO ()
+
 #endif
 #ifndef __GHCJS__
-renderAction :: RenderingAction (IO ()) (Elem (IO ()) ElementID) -> IO ()
+renderAction :: RenderingAction (IO ()) -> IO ()
 renderAction = undefined
 #endif
 
 -- | Perform a bunch of renderingActions
-render :: [RenderingAction (IO ()) (Elem (IO ()) ElementID)] -> IO ()
+render :: [RenderingAction (IO ())] -> IO ()
 render = fmap (const ()) . sequence . fmap renderAction . filter (not . isNop) where
   isNop NoAction = True
   isNop _        = False

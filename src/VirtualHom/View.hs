@@ -35,7 +35,7 @@ renderUI opts view interp state = render ioActions where
   updateUI = renderUI opts' view interp
   -- list of actions, this time with all callbacks transformed to `IO ()`` so
   -- that the event handlers can be hooked up properly.
-  ioActions = fmap (mapCbs $ \f -> interp (f state) >>= updateUI) actions
+  ioActions = fmap (fmap $ \f -> interp (f state) >>= updateUI) actions
 
 -- | Integrate a view of only part of an application state
 specialise :: Monad m => Lens' a b -> View m b -> View m a

@@ -22,7 +22,7 @@ theUI i = [container & children .~ [
       if (i <= 5)
       then btnDefault &
         content .~ "Submit" &
-        callbacks . click ?~ return . succ
+        callbacks . click ?~ const (return . succ)
       else div]
     ]]
 

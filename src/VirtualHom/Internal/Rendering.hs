@@ -119,8 +119,8 @@ changeCallbacks old new i = [clickE, changeE, inputE] where
     (_,       Just a)  -> SetCallback i "change" a
   clickE = case (old^.click, new^.click) of
     (Nothing, Nothing) -> NoAction
-    (Just _,  Nothing) -> RemoveCallback i "onclick"
-    (_,       Just a)  -> SetCallback i "onclick" a
+    (Just _,  Nothing) -> RemoveCallback i "click"
+    (_,       Just a)  -> SetCallback i "click" a
   inputE = case (old^.input, new^.input) of
     (Nothing, Nothing) -> NoAction
     (Just _,  Nothing) -> RemoveCallback i "input"

@@ -15,7 +15,7 @@ The virtual-dom part is functional. However, since I've built this to support an
 
 [x] Add constructors for remaining HTML5 elements to `Html.hs`
 [x] Improve callbacks (more callbacks)
-[ ] Improve callbacks (callbacks with arguments)
+[x] Improve callbacks (callbacks with arguments)
 [ ] Support a user-defined `key` property to allow re-ordering of child elements instead of mutation
 [ ] Remove `lens` dependency?
 [ ] Decide whether to use JSString everywhere, instead of Text

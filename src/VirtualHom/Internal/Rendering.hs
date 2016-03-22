@@ -170,7 +170,8 @@ changeAttributes old new i = actions where
 
 -- | `RenderingAction`s for a single `Elem ElementID`
 createNew :: InsertWhere -> Elem cb ElementID -> [RenderingAction cb]
-createNew i p = x:xs where
+createNew i p = x:y:xs where
+  y    = SetTextContent (p^.elemID) (p^.content)
   x    = NewElement i (p^.elementType) (p^.elemID)
   cbs  = changeCallbacks emptyCb (p^.callbacks) (p^.elemID)
   i'   = InsertAsChildOf $ p^.elemID

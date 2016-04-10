@@ -48,7 +48,10 @@ prepare opts new = runState go opts where
     let result = createNew target newWithIds
     return result
 
-renderingOptions :: Text -> RenderingOptions
+-- | Create a `RenderingOptions` value. 
+renderingOptions :: 
+  Text -- ^ ID of the div where VirtualHom should render its DOM 
+  -> RenderingOptions
 renderingOptions = RenderingOptions ids Nothing where
   ids = fmap ((<>) "virtual-hom-" . T.pack . show) [1..] -- infinite list of IDs
 

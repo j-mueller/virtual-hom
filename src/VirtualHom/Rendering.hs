@@ -1,6 +1,7 @@
 module VirtualHom.Rendering(
   RenderingOptions,
-  renderingOptions
+  renderingOptions,
+  targetDivId
   ) where
 
 import VirtualHom.Internal.Rendering

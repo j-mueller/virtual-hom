@@ -30,10 +30,10 @@ extra-package-dbs: []
 # Extra directories used by stack for building
 # extra-include-dirs: [/path/to/dir]
 # extra-lib-dirs: [/path/to/dir]
-compiler: ghcjs-0.2.0.20151230.3_ghc-7.10.2
+compiler: ghcjs-0.2.0.20160315_ghc-7.10.2
 compiler-check: match-exact
 setup-info:
  ghcjs:
   source:
-   ghcjs-0.2.0.20151230.3_ghc-7.10.2:
-    url: "https://github.com/nrolland/ghcjs/releases/download/v.0.2.0.20151230.3/ghcjs-0.2.0.20151230.3.tar.gz"
+   ghcjs-0.2.0.20160315_ghc-7.10.2:
+    url: "https://github.com/nrolland/ghcjs/releases/download/v.0.2.0.20160315/ghcjs-0.2.0.20160315.tar.gz"

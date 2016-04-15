@@ -127,13 +127,15 @@ data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
   deriving Show
 
 data RenderingAction c =
-    DeleteElement{ _id :: ElementID }
-  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _id :: ElementID}
-  | SetTextContent{ _id :: ElementID, _text :: Text }
-  | RemoveAttribute{ _id :: ElementID, _attribute :: Text }
-  | SetAttribute{ _id :: ElementID, _attribute :: Text, _attrValue :: Text }
-  | SetGenericEventCallback{ _id :: ElementID, _callbackName :: Text, _genericEventCallback :: GenericEventData -> c }
-  | SetValueCallback{ _id :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
-  | RemoveCallback{ _id :: ElementID, _callbackName :: Text }
+    DeleteElement{ _elementId :: ElementID }
+  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID}
+  | SetTextContent{ _elementId :: ElementID, _text :: Text }
+  | RemoveAttribute{ _elementId :: ElementID, _attribute :: Text }
+  | SetAttribute{ _elementId :: ElementID, _attribute :: Text, _attrValue :: Text }
+  | SetGenericEventCallback{ _elementId :: ElementID, _callbackName :: Text, _genericEventCallback :: GenericEventData -> c }
+  | SetValueCallback{ _elementId :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
+  | RemoveCallback{ _elementId :: ElementID, _callbackName :: Text }
   | NoAction
   deriving (Functor)
+
+makeLenses ''RenderingAction

@@ -59,7 +59,9 @@ renderAction a = case a of
   SetTextContent i t -> do
     _ <- putStrLn $ "Set text content of " ++ (show i) ++ " to " ++ (show t)
     js_setTextContent (textToJSString i) (textToJSString t)
-  SetAttribute i a v -> js_setAttributeById (textToJSString i) (textToJSString a) (textToJSString v)
+  SetAttribute i a v -> do
+    _ <- putStrLn $ "Set attribute " ++ (show a) ++ " of " ++ (show i) ++ " to " ++ (show v) 
+    js_setAttributeById (textToJSString i) (textToJSString a) (textToJSString v)
 
 getValueChangedData :: JSVal -> IO ValueChangedData
 getValueChangedData e = ValueChangedData <$> gen <*> v where
@@ -128,7 +130,8 @@ renderAction = undefined
 #endif
 
 -- | Perform a bunch of renderingActions
-render :: [RenderingAction (IO ())] -> IO ()
-render = fmap (const ()) . sequence . fmap renderAction . filter (not . isNop) where
-  isNop NoAction = True
-  isNop _        = False
+render :: (forall c. RenderingAction c -> IO ()) -> [RenderingAction (IO ())] -> IO ()
+render cb = fmap (const ()) . sequence . fmap doRender . filter (not . isNop) where
+  isNop NoAction  = True
+  isNop _         = False
+  doRender a = renderAction a >> cb a

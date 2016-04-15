@@ -29,6 +29,7 @@ import Prelude hiding (error)
 data RenderingOptions = RenderingOptions{
   _remainingIDs :: [Text],
   _lastView :: Maybe VirtualElem,
+  _actionHandler :: forall a. RenderingAction a -> IO (), -- ^ Callback that will be called after all rendering actions have been executed
   _targetDivId :: Text
 }
 
@@ -52,7 +53,7 @@ prepare opts new = runState go opts where
 renderingOptions :: 
   Text -- ^ ID of the div where VirtualHom should render its DOM 
   -> RenderingOptions
-renderingOptions = RenderingOptions ids Nothing where
+renderingOptions = RenderingOptions ids Nothing (const $ return ()) where
   ids = fmap ((<>) "virtual-hom-" . T.pack . show) [1..] -- infinite list of IDs
 
 -- | The actual `diff` algorithm - compare the two `Element`s top-down to see

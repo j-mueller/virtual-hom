@@ -26,7 +26,7 @@ renderUI ::
   (m a -> IO a) -> -- Interpreter for effects
   a -> -- Initial application state
   IO ()
-renderUI opts view interp state = render ioActions where
+renderUI opts view interp state = render callback ioActions where
   -- prepare the actions that will turn the old DOM into the new DOM, along with
   -- an updated version of the `RenderingOptions`
   (actions, opts') = prepare opts $ div & children .~ view state
@@ -36,6 +36,8 @@ renderUI opts view interp state = render ioActions where
   -- list of actions, this time with all callbacks transformed to `IO ()`` so
   -- that the event handlers can be hooked up properly.
   ioActions = fmap (fmap $ \f -> interp (f state) >>= updateUI) actions
+  -- user-defined callback when inidividual elements are rendered
+  callback = opts^.actionHandler
 
 -- | Integrate a view of only part of an application state
 specialise :: Monad m => Lens' a b -> View m b -> View m a

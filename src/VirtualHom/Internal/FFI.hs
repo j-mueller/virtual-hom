@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
-#ifndef __GHCJS__
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+#ifndef __GHCJS__
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 #endif
 #ifdef __GHCJS__

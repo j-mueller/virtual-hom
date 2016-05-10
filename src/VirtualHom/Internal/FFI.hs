@@ -53,7 +53,6 @@ renderAction a = case a of
     _ <- putStrLn $ "Changing GenericEvent callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getGenericData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
   SetValueCallback i n c -> do
-    -- TODO: Convert to ValueChangedData
     _ <- putStrLn $ "Changing ValueChangedData callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getValueChangedData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
   SetTextContent i t -> do
@@ -83,10 +82,10 @@ foreign import javascript unsafe "document.createTextNode($1)"
 foreign import javascript unsafe "$1['appendChild']($2)"
   js_appendChild :: JSVal -> JSVal -> IO ()
 
-foreign import javascript unsafe "$($1).insertBefore(document.getElementById($2))"
+foreign import javascript unsafe "document.getElementById($2).insertAdjacentElement('beforebegin', $1)"
   js_insertBefore :: JSVal -> JSString -> IO ()
 
-foreign import javascript unsafe "$($1).insertAfter(document.getElementById($2))"
+foreign import javascript unsafe "document.getElementById($2).insertAdjacentElement('afterend', $1)"
   js_insertAfter :: JSVal -> JSString -> IO ()
 
 foreign import javascript unsafe "document.createElement($1)"
@@ -101,7 +100,7 @@ foreign import javascript unsafe "$1['setAttribute']($2, $3)"
 foreign import javascript unsafe "$1['onclick']=$2"
   js_setOnClick :: JSVal -> Callback (JSVal -> IO ()) -> IO ()
 
-foreign import javascript unsafe "function(){e=document.getElementById($1);if(e!=null && e.parentElement!=null)e.parentElement.removeChild(e)}()"
+foreign import javascript unsafe "function(){var e=document.getElementById($1);if(e!=null && e.parentElement!=null)e.parentElement.removeChild(e)}()"
   js_deleteElementById :: JSString -> IO ()
 
 foreign import javascript unsafe "document.getElementById($1)['removeAttribute']($2)"
@@ -110,19 +109,15 @@ foreign import javascript unsafe "document.getElementById($1)['removeAttribute']
 foreign import javascript unsafe "document.getElementById($1)['setAttribute']($2, $3)"
   js_setAttributeById :: JSString -> JSString -> JSString -> IO ()
 
-foreign import javascript unsafe "$(document.getElementById($1)).off($2)"
+foreign import javascript unsafe "document.getElementById($1)[$2]=function(){return;}"
   js_RemoveCallbackById :: JSString -> JSString -> IO ()
 
 foreign import javascript unsafe "document.getElementById($1)['textContent']=$2"
   js_setTextContent :: JSString -> JSString -> IO ()
-
--- TODO: support callbacks with more than 0 arguments
-foreign import javascript unsafe "$(document.getElementById($1)).on($2, $3)"
-  js_setCallbackById :: JSString -> JSString -> Callback (IO ()) -> IO ()
-
-foreign import javascript unsafe "$(document.getElementById($1)).on($2, $3)"
+  
+foreign import javascript unsafe "document.getElementById($1)[$2]=$3"
   js_setCallbackById1 :: JSString -> JSString -> Callback (JSVal -> IO ()) -> IO ()
-
+  
 #endif
 #ifndef __GHCJS__
 renderAction :: RenderingAction (IO ()) -> IO ()

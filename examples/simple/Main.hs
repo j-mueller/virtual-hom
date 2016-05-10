@@ -23,7 +23,7 @@ theUI i = [container & children .~ [
       then btnDefault &
         content .~ "Submit" &
         callbacks . click ?~ const (return . succ)
-      else div]
+      else div & content .~ "DONE"]
     ]]
 
 main :: IO ()

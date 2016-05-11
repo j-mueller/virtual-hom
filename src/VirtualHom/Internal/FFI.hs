@@ -82,10 +82,10 @@ foreign import javascript unsafe "document.createTextNode($1)"
 foreign import javascript unsafe "$1['appendChild']($2)"
   js_appendChild :: JSVal -> JSVal -> IO ()
 
-foreign import javascript unsafe "document.getElementById($2).insertAdjacentElement('beforebegin', $1)"
+foreign import javascript unsafe "var elem=document.getElementById($2);elem.parentNode.insertBefore($1, elem)"
   js_insertBefore :: JSVal -> JSString -> IO ()
 
-foreign import javascript unsafe "document.getElementById($2).insertAdjacentElement('afterend', $1)"
+foreign import javascript unsafe "var elem=document.getElementById($2);elem.parentNode.insertBefore($1, elem.nextSibling)"
   js_insertAfter :: JSVal -> JSString -> IO ()
 
 foreign import javascript unsafe "document.createElement($1)"

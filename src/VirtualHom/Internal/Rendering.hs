@@ -180,7 +180,8 @@ createNew i p = x:y:xs where
   cbs  = changeCallbacks emptyCb (p^.callbacks) (p^.elemID)
   i'   = InsertAsChildOf $ p^.elemID
   rest = concat $ fmap (createNew i') $ p^.children
-  xs   = cbs ++ rest
+  atts = changeAttributes mempty (p^.attributes) (p^.elemID)
+  xs   = cbs ++ atts ++ rest
 
 
 -- | Get a new id

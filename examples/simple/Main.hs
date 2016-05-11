@@ -23,7 +23,13 @@ theUI i = [container & children .~ [
       then btnDefault &
         content .~ "Submit" &
         callbacks . click ?~ const (return . succ)
-      else div & content .~ "DONE"]
+      else div & content .~ "DONE"],
+      row & children .~ [
+          VirtualHom.Html.select & children .~ [
+          option & content .~ "Option 1" & attributes . at "value" .~ Just "1",
+          option & content .~ "Option 2" & attributes . at "value" .~ Just "2"
+        ]
+      ]
     ]]
 
 main :: IO ()

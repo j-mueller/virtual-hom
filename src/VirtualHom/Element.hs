@@ -32,7 +32,9 @@ module VirtualHom.Element(
   resize,
   scroll,
   select,
-  submit
+  submit,
+  -- * Events
+  value
   ) where
 
 import VirtualHom.Internal.Element

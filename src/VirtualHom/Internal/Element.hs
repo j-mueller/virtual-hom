@@ -21,13 +21,25 @@ import qualified Data.Text as T
 
 -- Event data, see http://api.jquery.com/category/events/event-object/ for other data that we could get depending on event type
 
-data GenericEventData = GenericEventData{ _timestamp :: Int, _pageX :: Int, _pageY :: Int }
+data GenericEventData = GenericEventData{ 
+  _timestamp :: Int, 
+  _pageX :: Int, 
+  _pageY :: Int }
   deriving (Eq, Ord, Show)
 makeLenses ''GenericEventData
 
-data ValueChangedData = ValueChangedData{ _genericData :: GenericEventData, _value :: Text }
+data ValueChangedData = ValueChangedData{ 
+  _valueGenericData :: GenericEventData, 
+  _value :: Text 
+}
   deriving (Eq, Ord, Show)
 makeLenses ''ValueChangedData
+
+data KeyboardEventData = KeyboardEventData {
+    _keyboardGenericData :: GenericEventData,
+    _key :: Text
+  } deriving (Eq, Ord, Show)
+makeLenses ''KeyboardEventData
 
 -- | Collection of callbacks of an element
 data Callbacks cb = Callbacks{
@@ -41,9 +53,9 @@ data Callbacks cb = Callbacks{
   _focusin :: Maybe (GenericEventData -> cb),
   _focusout :: Maybe (GenericEventData -> cb),
   _hover :: Maybe (GenericEventData -> cb),
-  _keydown :: Maybe (GenericEventData -> cb),
-  _keypress :: Maybe (GenericEventData -> cb),
-  _keyup :: Maybe (GenericEventData -> cb),
+  _keydown :: Maybe (KeyboardEventData -> cb),
+  _keypress :: Maybe (KeyboardEventData -> cb),
+  _keyup :: Maybe (KeyboardEventData -> cb),
   _load :: Maybe (GenericEventData -> cb),
   _mousedown :: Maybe (GenericEventData -> cb),
   _mouseenter :: Maybe (GenericEventData -> cb),
@@ -134,6 +146,7 @@ data RenderingAction c =
   | SetAttribute{ _elementId :: ElementID, _attribute :: Text, _attrValue :: Text }
   | SetGenericEventCallback{ _elementId :: ElementID, _callbackName :: Text, _genericEventCallback :: GenericEventData -> c }
   | SetValueCallback{ _elementId :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
+  | SetKeyEventCallback { _elementId :: ElementID, _callbackName :: Text, _keyEventCallback :: KeyboardEventData -> c }
   | RemoveCallback{ _elementId :: ElementID, _callbackName :: Text }
   | NoAction
   deriving (Functor)

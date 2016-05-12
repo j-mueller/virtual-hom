@@ -133,9 +133,9 @@ changeCallbacks old new i = [
   gen (old^.focusin) (new^.focusin) "onfocusin",
   gen (old^.focusout) (new^.focusout) "onfocusout",
   gen (old^.hover) (new^.hover) "onhover",
-  gen (old^.keydown) (new^.keydown) "onkeydown",
-  gen (old^.keypress) (new^.keypress) "onkeypress",
-  gen (old^.keyup) (new^.keyup) "onkeyup",
+  key (old^.keydown) (new^.keydown) "onkeydown",
+  key (old^.keypress) (new^.keypress) "onkeypress",
+  key (old^.keyup) (new^.keyup) "onkeyup",
   gen (old^.load) (new^.load) "onload",
   gen (old^.mousedown)  (new^.mousedown)  "onmousedown",
   gen (old^.mouseenter)  (new^.mouseenter)  "onmouseenter",
@@ -157,7 +157,11 @@ changeCallbacks old new i = [
     gen o n f = case (o, n) of
       (Nothing, Nothing) -> NoAction
       (Just _,  Nothing) -> RemoveCallback i f
-      (_,       Just a)  -> SetGenericEventCallback i f a -- TODO: Diff types of callback
+      (_,       Just a)  -> SetGenericEventCallback i f a 
+    key o n f = case (o, n) of
+      (Nothing, Nothing) -> NoAction
+      (Just _,  Nothing) -> RemoveCallback i f
+      (_,       Just a)  -> SetKeyEventCallback i f a
 
 -- | Takes the map with old attributes and the map with new attributes and
 -- generates actions that will transform an element with the first set of

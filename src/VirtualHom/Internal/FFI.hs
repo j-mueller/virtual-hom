@@ -55,6 +55,9 @@ renderAction a = case a of
   SetValueCallback i n c -> do
     _ <- putStrLn $ "Changing ValueChangedData callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getValueChangedData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
+  SetKeyEventCallback i n c -> do
+    _ <- putStrLn $ "Changing KeyEventData callback " ++ (show n) ++ " of " ++ (show i)
+    (asyncCallback1 $ \j -> (getKeyEventData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)    
   SetTextContent i t -> do
     _ <- putStrLn $ "Set text content of " ++ (show i) ++ " to " ++ (show t)
     js_setTextContent (textToJSString i) (textToJSString t)
@@ -67,6 +70,11 @@ getValueChangedData e = ValueChangedData <$> gen <*> v where
   gen = getGenericData e
   v   = getProp e "target" >>= fmap (T.pack . fromJSString) . flip getProp "value"
 
+getKeyEventData :: JSVal -> IO KeyboardEventData
+getKeyEventData e = KeyboardEventData <$> gen <*> v where
+  gen = getGenericData e
+  v   = fmap (T.pack . fromJSString) $ getProp e "key"
+  
 getGenericData :: JSVal -> IO GenericEventData
 getGenericData v = GenericEventData <$> ts <*> x <*> y where
   ts = fmap fromJSInt $ getProp v "timestamp"

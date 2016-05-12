@@ -34,7 +34,8 @@ module VirtualHom.Element(
   select,
   submit,
   -- * Events
-  value
+  value,
+  key
   ) where
 
 import VirtualHom.Internal.Element

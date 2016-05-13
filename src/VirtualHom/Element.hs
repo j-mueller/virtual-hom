@@ -12,6 +12,7 @@ module VirtualHom.Element(
   change,
   contextmenu,
   dblclick,
+  elementCreated,
   error,
   focus,
   focusin,

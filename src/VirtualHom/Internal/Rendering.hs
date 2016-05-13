@@ -46,7 +46,7 @@ prepare opts new = runState go opts where
     newWithIds <- traverse (const nextId) new
     let lastView' = mapCallbacks (const ()) newWithIds
     lastView ?= lastView'
-    let result = createNew target newWithIds
+    let result = createNew target [] newWithIds
     return result
 
 -- | Create a `RenderingOptions` value. 
@@ -79,9 +79,9 @@ diff' ::
   ([RenderingAction cb], Map ElementID ElementID)
 diff' i old new
   | old^.elementType == new^.elementType = diffSameType old new
-  | otherwise = (del:rest, M.empty) where
+  | otherwise = (createActions, M.empty) where
     del  = DeleteElement $ old^.elemID
-    rest = createNew i new
+    createActions = createNew i [del] new
 
 -- | Generate actions for changing an existing element into a new one, assuming
 -- both have the same type.
@@ -110,12 +110,12 @@ diffChildren ::
   [Elem () ElementID] ->
   [Elem cb ElementID] ->
   ([RenderingAction cb], Map ElementID ElementID)
-diffChildren w [] xs   = (concat $ fmap (createNew w) xs, M.empty)
-diffChildren _   ys [] = (fmap (DeleteElement . view elemID) ys, M.empty)
-diffChildren w (x:xs) (y:ys) = (firstDiff <> restDiffs, firstSubst <> restSubst) where
-  (firstDiff, firstSubst) = diff' w x y
-  (restDiffs, restSubst ) = diffChildren newPos xs ys
-  newPos = InsertAfter $ maybe (y^.elemID) id $ M.lookup (y^.elemID) firstSubst
+diffChildren w [] news   = (concat $ fmap (createNew w []) news, M.empty)
+diffChildren _ olds []   = (fmap (DeleteElement . view elemID) olds, M.empty)
+diffChildren w (old:olds) (new:news) = (firstDiff <> restDiffs, firstSubst <> restSubst) where
+  (firstDiff, firstSubst) = diff' w old new
+  (restDiffs, restSubst ) = diffChildren newPos olds news
+  newPos = InsertAfter $ maybe (new^.elemID) id $ M.lookup (new^.elemID) firstSubst
 
 changeCallbacks ::
   Callbacks ca
@@ -176,16 +176,23 @@ changeAttributes old new i = actions where
   mapOld = M.mapWithKey $ \k _ -> RemoveAttribute i k
   mapNew = M.mapWithKey $ \k v -> SetAttribute i k v
 
--- | `RenderingAction`s for a single `Elem ElementID`
-createNew :: InsertWhere -> Elem cb ElementID -> [RenderingAction cb]
-createNew i p = x:y:xs where
+-- | `RenderingAction`s for a single `Elem ElementID`. The 
+-- `[RenderingAction cb]` parameter can be used for actions that
+-- should be run after the element has been  inserted into the DOM
+-- but before any of its attributes/children/content have been set
+-- (eg. deletion of a reference element)
+createNew :: InsertWhere -> [RenderingAction cb] -> Elem cb ElementID -> [RenderingAction cb]
+createNew i deferred p = (x:deferred) ++ (y:xs) where
   y    = SetTextContent (p^.elemID) (p^.content)
-  x    = NewElement i (p^.elementType) (p^.elemID)
+  x    = NewElement i (p^.elementType) (p^.elemID) 
   cbs  = changeCallbacks emptyCb (p^.callbacks) (p^.elemID)
   i'   = InsertAsChildOf $ p^.elemID
-  rest = concat $ fmap (createNew i') $ p^.children
+  rest = concat $ fmap (createNew i' []) $ p^.children
   atts = changeAttributes mempty (p^.attributes) (p^.elemID)
-  xs   = cbs ++ atts ++ rest
+  createdCb = case (p^.callbacks.elementCreated) of
+    Nothing -> []
+    Just cb -> [GenericIOAction $ cb $ p^.elemID]
+  xs   = cbs ++ atts ++ rest ++ createdCb
 
 
 -- | Get a new id

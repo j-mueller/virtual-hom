@@ -68,7 +68,8 @@ data Callbacks cb = Callbacks{
   _resize :: Maybe (GenericEventData -> cb),
   _scroll :: Maybe (GenericEventData -> cb),
   _select :: Maybe (GenericEventData -> cb),
-  _submit :: Maybe (GenericEventData -> cb)
+  _submit :: Maybe (GenericEventData -> cb),
+  _elementCreated :: Maybe (T.Text -> IO ()) -- callback for when this element has been inserted into the DOM. The supplied text is the id of the element.
   }
   deriving (Functor)
 
@@ -76,6 +77,7 @@ makeLenses ''Callbacks
 
 emptyCb :: Callbacks cb
 emptyCb = Callbacks
+            Nothing
             Nothing
             Nothing
             Nothing
@@ -140,7 +142,7 @@ data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
 
 data RenderingAction c =
     DeleteElement{ _elementId :: ElementID }
-  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID}
+  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID }
   | SetTextContent{ _elementId :: ElementID, _text :: Text }
   | RemoveAttribute{ _elementId :: ElementID, _attribute :: Text }
   | SetAttribute{ _elementId :: ElementID, _attribute :: Text, _attrValue :: Text }
@@ -148,6 +150,7 @@ data RenderingAction c =
   | SetValueCallback{ _elementId :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
   | SetKeyEventCallback { _elementId :: ElementID, _callbackName :: Text, _keyEventCallback :: KeyboardEventData -> c }
   | RemoveCallback{ _elementId :: ElementID, _callbackName :: Text }
+  | GenericIOAction{ _action :: IO () }
   | NoAction
   deriving (Functor)
 

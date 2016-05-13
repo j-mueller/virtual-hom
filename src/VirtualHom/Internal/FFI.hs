@@ -64,6 +64,9 @@ renderAction a = case a of
   SetAttribute i a v -> do
     _ <- putStrLn $ "Set attribute " ++ (show a) ++ " of " ++ (show i) ++ " to " ++ (show v) 
     js_setAttributeById (textToJSString i) (textToJSString a) (textToJSString v)
+  GenericIOAction cb -> do
+    _ <- putStrLn "Running generic IO action"
+    cb
 
 getValueChangedData :: JSVal -> IO ValueChangedData
 getValueChangedData e = ValueChangedData <$> gen <*> v where

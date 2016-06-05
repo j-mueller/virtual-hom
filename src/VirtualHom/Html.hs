@@ -63,6 +63,7 @@ module VirtualHom.Html(
   -- * Image and multimedia
   area,
   audio,
+  img,
   map_,
   track,
   video,
@@ -303,6 +304,9 @@ area = elm "area"
 
 audio :: Elem cb ()
 audio = elm "audio"
+
+img :: Elem cb ()
+img = elm "img"
 
 map_ :: Elem cb ()
 map_ = elm "map"

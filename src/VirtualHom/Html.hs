@@ -30,6 +30,7 @@ module VirtualHom.Html(
   pre,
   ul,
   -- * Inline text semantics
+  a,
   abbr,
   b,
   bdi,
@@ -206,6 +207,9 @@ pre = elm "pre"
 
 ul :: Elem cb ()
 ul = elm "ul"
+
+a :: Elem cb ()
+a = elm "a"
 
 abbr :: Elem cb ()
 abbr = elm "abbr"

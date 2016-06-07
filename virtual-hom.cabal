@@ -40,6 +40,7 @@ library
     , containers
     , lens
     , mtl
+    , stm
     , text
   if flag(js)
     build-depends:

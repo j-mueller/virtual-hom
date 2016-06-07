@@ -28,18 +28,9 @@ renderUI ::
   (m a -> IO a) -> -- ^ Interpreter for effects
   a -> -- ^ Initial application state
   IO ()
-renderUI opts view interp state = render callback ioActions where
-  -- prepare the actions that will turn the old DOM into the new DOM, along with
-  -- an updated version of the `RenderingOptions`
-  (actions, opts') = prepare opts $ div & children .~ view state
-  -- a callback for updating the UI when the app. state has changed
-  -- updateUI :: a -> IO ()
-  updateUI = renderUI opts' view interp
-  -- list of actions, this time with all callbacks transformed to `IO ()`` so
-  -- that the event handlers can be hooked up properly.
-  ioActions = fmap (fmap $ \f -> interp (f state) >>= updateUI) actions
-  -- user-defined callback when inidividual elements are rendered
-  callback = opts^.actionHandler
+renderUI opts view interp state = do
+  q <- newTQueueIO
+  renderUI' opts view interp q state 
 
 -- | Render a `View m a` by providing an interpreter for effects in `m` and a
 -- `TQueue` of state updates. This is useful if the state is updated by

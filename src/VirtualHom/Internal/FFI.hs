@@ -32,7 +32,7 @@ import GHCJS.Types (JSString, JSVal, JSRef)
 renderAction :: RenderingAction (IO ()) -> IO ()
 renderAction a = case a of
   NewElement p tp i -> do
-    _ <- putStrLn ("Creating new element at position: " <> show p)
+    -- _ <- putStrLn ("Creating new element at position: " <> show p)
     elm <- js_createElement $ textToJSString tp
     _ <- js_setId elm $ textToJSString i
     case p of
@@ -42,30 +42,30 @@ renderAction a = case a of
         e' <- js_getElementById $ textToJSString e
         js_appendChild e' elm
   DeleteElement i -> do
-    _ <- putStrLn $ "Deleting element: " <> show i
+    -- _ <- putStrLn $ "Deleting element: " <> show i
     js_deleteElementById $ textToJSString i
   RemoveAttribute i a -> js_removeAttributeById (textToJSString i) $ textToJSString a
   NoAction -> return ()
   RemoveCallback i n -> do
-    _ <- putStrLn $ "Removing callback " ++ (show n) ++ " from " ++ (show i)
+    -- _ <- putStrLn $ "Removing callback " ++ (show n) ++ " from " ++ (show i)
     js_RemoveCallbackById (textToJSString i) $ textToJSString n
   SetGenericEventCallback i n c -> do
-    _ <- putStrLn $ "Changing GenericEvent callback " ++ (show n) ++ " of " ++ (show i)
+    -- _ <- putStrLn $ "Changing GenericEvent callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getGenericData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
   SetValueCallback i n c -> do
-    _ <- putStrLn $ "Changing ValueChangedData callback " ++ (show n) ++ " of " ++ (show i)
+    -- _ <- putStrLn $ "Changing ValueChangedData callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getValueChangedData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)
   SetKeyEventCallback i n c -> do
-    _ <- putStrLn $ "Changing KeyEventData callback " ++ (show n) ++ " of " ++ (show i)
+    -- _ <- putStrLn $ "Changing KeyEventData callback " ++ (show n) ++ " of " ++ (show i)
     (asyncCallback1 $ \j -> (getKeyEventData j) >>= c) >>= js_setCallbackById1 (textToJSString i) (textToJSString n)    
   SetTextContent i t -> do
-    _ <- putStrLn $ "Set text content of " ++ (show i) ++ " to " ++ (show t)
+    -- _ <- putStrLn $ "Set text content of " ++ (show i) ++ " to " ++ (show t)
     js_setTextContent (textToJSString i) (textToJSString t)
   SetAttribute i a v -> do
-    _ <- putStrLn $ "Set attribute " ++ (show a) ++ " of " ++ (show i) ++ " to " ++ (show v) 
+    -- _ <- putStrLn $ "Set attribute " ++ (show a) ++ " of " ++ (show i) ++ " to " ++ (show v) 
     js_setAttributeById (textToJSString i) (textToJSString a) (textToJSString v)
   GenericIOAction cb -> do
-    _ <- putStrLn "Running generic IO action"
+    -- _ <- putStrLn "Running generic IO action"
     cb
 
 getValueChangedData :: JSVal -> IO ValueChangedData

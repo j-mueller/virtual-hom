@@ -1,5 +1,31 @@
 # virtual-hom
-Haskell+GHCJS implementation of [virtual-dom](https://github.com/Matt-Esch/virtual-dom). It's not a direct port, I merely copied the idea (a virtual DOM with incremental updates).
+Haskell+GHCJS implementation of [virtual-dom](https://github.com/Matt-Esch/virtual-dom), mixed with a lens-based API for creating and composing user interfaces.
+
+```[haskell]
+data AppState = Loading (...) | Error (...) | Done (...)
+makePrisms ''AppState
+
+
+stateView :: View Identity AppState
+stateView =
+  (on _Loading loadingView) <>
+  (on _Error   errorView)   <>
+  (on _Done    doneView)
+```
+
+```[haskell]
+theUI :: View Identity Int
+theUI i = [container & children .~ [
+  row & children .~ [
+    h1 "Hello, world",
+    p & content .~ "I am a paragraph!",
+    p & content .~ ("This button has been clicked " <> (show i) <> " times"),
+    btnDefault &
+      content .~ "Submit" &
+      callbacks . click ?~ (\_ -> return . succ)]
+    ]
+  ]
+```
 
 Comparison of virtual-dom parts with their equivalents in virtual-hom:
 
@@ -17,8 +43,9 @@ The virtual-dom part is functional. However, since I've built this to support an
 [x] Improve callbacks (more callbacks)
 [x] Improve callbacks (callbacks with arguments)
 [ ] Support a user-defined `key` property to allow re-ordering of child elements instead of mutation
-[ ] Remove `lens` dependency?
 [ ] Decide whether to use JSString everywhere, instead of Text
+[ ] Fix bug that results in elements being rendered in the wrong order
+[ ] XmlHTTPRequest
 
 ## How to build
 

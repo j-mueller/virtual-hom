@@ -95,7 +95,7 @@ diffSameType old new = (contAct <> attrAct <> cbAct <> childAct, subst <> childS
   subst = M.fromList [(new^.elemID, targetId)]
   -- 2. check if the content needs to be updated
   contAct =  if (new^.content == old^.content)
-                          then [NoAction]
+                          then []
                           else [SetTextContent targetId $ new^.content]
   -- 3. Update the element's attributes
   attrAct = changeAttributes (old^.attributes) (new^.attributes) targetId
@@ -110,7 +110,7 @@ diffChildren ::
   [Elem () ElementID] ->
   [Elem cb ElementID] ->
   ([RenderingAction cb], Map ElementID ElementID)
-diffChildren w [] news   = (concat $ fmap (createNew w []) news, M.empty)
+diffChildren w [] news   = (concat $ fmap (\(elm, pos) -> createNew pos [] elm) $ zip news (w: fmap (InsertAfter . view elemID) news), M.empty)
 diffChildren _ olds []   = (fmap (DeleteElement . view elemID) olds, M.empty)
 diffChildren w (old:olds) (new:news) = (firstDiff <> restDiffs, firstSubst <> restSubst) where
   (firstDiff, firstSubst) = diff' w old new

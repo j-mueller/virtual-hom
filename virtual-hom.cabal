@@ -24,6 +24,11 @@ flag examples
   default: False
   manual: False
 
+flag test-properties
+  description: Build the test suite 
+  default: True
+  manual: True
+
 library
   hs-source-dirs:      src
   exposed-modules:
@@ -92,6 +97,29 @@ executable prisms-example
       , mtl
       , text
   default-language: Haskell2010
+
+-- Verify some properties of the diff algorithm
+test-suite properties
+  type: exitcode-stdio-1.0
+  main-is: properties.hs
+  other-modules:
+    VirtualHom.Properties  
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs:
+    test
+  if !flag(test-properties)
+    buildable: False
+  else
+    build-depends:
+      base,
+      virtual-hom,
+      lens,
+      QuickCheck                 >= 2.4,
+      quickcheck-instances       >= 0.3.11,
+      test-framework             >= 0.6,
+      test-framework-quickcheck2 >= 0.2,
+      test-framework-th          >= 0.2,
+      transformers
 
 source-repository head
   type:     git

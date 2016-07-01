@@ -138,7 +138,7 @@ elm t = Elem t mempty mempty [] () emptyCb
 -- | Where to insert an element - before another elem, or as (last) child of an
 -- elem
 data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
-  deriving Show
+  deriving (Eq, Show)
 
 data RenderingAction c =
     DeleteElement{ _elementId :: ElementID }

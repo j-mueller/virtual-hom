@@ -32,7 +32,7 @@ import GHCJS.Types (JSString, JSVal, JSRef)
 renderAction :: RenderingAction (IO ()) -> IO ()
 renderAction a = case a of
   NewElement p tp i -> do
-    -- _ <- putStrLn ("Creating new element at position: " <> show p)
+    _ <- putStrLn ("Creating new element '" <> T.unpack i <> "' at position: '" <> show p <> "'")
     elm <- js_createElement $ textToJSString tp
     _ <- js_setId elm $ textToJSString i
     case p of

@@ -184,7 +184,7 @@ changeAttributes old new i = actions where
 createNew :: InsertWhere -> [RenderingAction cb] -> Elem cb ElementID -> [RenderingAction cb]
 createNew i deferred p = (x:deferred) ++ (y:xs) where
   y    = SetTextContent (p^.elemID) (p^.content)
-  x    = NewElement i (p^.elementType) (p^.elemID) 
+  x    = NewElement i (p^.elementType) (p^.elemID) (p^.namespace)
   cbs  = changeCallbacks emptyCb (p^.callbacks) (p^.elemID)
   i'   = InsertAsChildOf $ p^.elemID
   rest = concat $ fmap (createNew i' []) $ p^.children

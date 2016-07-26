@@ -20,6 +20,7 @@ instance Arbitrary (Elem () ElementID) where
       <*> pure [] -- TODO: Find a sensible way of generating trees
       <*> arbitrary
       <*> pure emptyCb
+      <*> arbitrary
 
 -- | Diff two `VirtualElem`s, excluding `NoAction` actions
 diff_ :: VirtualElem -> VirtualElem -> [RenderingAction ()]

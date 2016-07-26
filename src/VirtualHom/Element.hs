@@ -5,6 +5,7 @@ module VirtualHom.Element(
   children,
   callbacks,
   content,
+  namespace,
   -- * Callbacks
   Callbacks,
   blur,

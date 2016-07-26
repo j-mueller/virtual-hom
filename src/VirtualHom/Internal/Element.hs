@@ -111,7 +111,8 @@ data Elem cb a = Elem{
   _content     :: !Text,
   _children    :: [Elem cb a],
   _elemID      :: !a,
-  _callbacks   :: !(Callbacks cb)
+  _callbacks   :: !(Callbacks cb),
+  _namespace   :: !Text
 }
   deriving (Functor, Foldable, Traversable)
 
@@ -131,9 +132,10 @@ type ElementID = Text
 type ElementType = Text
 type VirtualElem = Elem () ElementID -- an element whose callbacks are of type ()
 
--- | Create an element with the specified type
+-- | Create an element with the specified type and HTML namespace
 elm :: Text -> Elem cb ()
-elm t = Elem t mempty mempty [] () emptyCb
+elm t = Elem t mempty mempty [] () emptyCb htmlNamespace where
+  htmlNamespace = "http://www.w3.org/1999/xhtml"
 
 -- | Where to insert an element - before another elem, or as (last) child of an
 -- elem
@@ -142,7 +144,7 @@ data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
 
 data RenderingAction c =
     DeleteElement{ _elementId :: ElementID }
-  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID }
+  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID, _elemNamespace :: Text }
   | SetTextContent{ _elementId :: ElementID, _text :: Text }
   | RemoveAttribute{ _elementId :: ElementID, _attribute :: Text }
   | SetAttribute{ _elementId :: ElementID, _attribute :: Text, _attrValue :: Text }

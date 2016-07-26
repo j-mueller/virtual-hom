@@ -31,9 +31,9 @@ import GHCJS.Types (JSString, JSVal, JSRef)
 -- | Perform a single `RenderingAction`
 renderAction :: RenderingAction (IO ()) -> IO ()
 renderAction a = case a of
-  NewElement p tp i -> do
+  NewElement p tp i ns -> do
     _ <- putStrLn ("Creating new element '" <> T.unpack i <> "' at position: '" <> show p <> "'")
-    elm <- js_createElement $ textToJSString tp
+    elm <- js_createElement (textToJSString ns) (textToJSString tp)
     _ <- js_setId elm $ textToJSString i
     case p of
       InsertBefore e -> js_insertBefore elm (textToJSString e)
@@ -99,8 +99,8 @@ foreign import javascript unsafe "var elem=document.getElementById($2);elem.pare
 foreign import javascript unsafe "var elem=document.getElementById($2);elem.parentNode.insertBefore($1, elem.nextSibling)"
   js_insertAfter :: JSVal -> JSString -> IO ()
 
-foreign import javascript unsafe "document.createElement($1)"
-  js_createElement :: JSString -> IO JSVal
+foreign import javascript unsafe "document.createElementNS($1, $2)"
+  js_createElement :: JSString -> JSString -> IO JSVal
 
 foreign import javascript unsafe "$1['id'] = $2"
   js_setId :: JSVal -> JSString -> IO ()

@@ -28,9 +28,9 @@ import Prelude hiding (error)
 
 data RenderingOptions = RenderingOptions{
   _remainingIDs :: [Text],
-  _lastView :: Maybe VirtualElem,
+  _lastView :: !(Maybe VirtualElem),
   _actionHandler :: forall a. RenderingAction a -> IO (), -- ^ Callback that will be called after all rendering actions have been executed
-  _targetDivId :: Text
+  _targetDivId :: !Text
 }
 
 makeLenses ''RenderingOptions

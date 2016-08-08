@@ -22,54 +22,54 @@ import qualified Data.Text as T
 -- Event data, see http://api.jquery.com/category/events/event-object/ for other data that we could get depending on event type
 
 data GenericEventData = GenericEventData{ 
-  _timestamp :: Int, 
-  _pageX :: Int, 
-  _pageY :: Int }
+  _timestamp :: !Int, 
+  _pageX :: !Int, 
+  _pageY :: !Int }
   deriving (Eq, Ord, Show)
 makeLenses ''GenericEventData
 
 data ValueChangedData = ValueChangedData{ 
-  _valueGenericData :: GenericEventData, 
-  _value :: Text 
+  _valueGenericData :: !GenericEventData, 
+  _value :: !Text 
 }
   deriving (Eq, Ord, Show)
 makeLenses ''ValueChangedData
 
 data KeyboardEventData = KeyboardEventData {
-    _keyboardGenericData :: GenericEventData,
-    _key :: Text
+    _keyboardGenericData :: !GenericEventData,
+    _key :: !Text
   } deriving (Eq, Ord, Show)
 makeLenses ''KeyboardEventData
 
 -- | Collection of callbacks of an element
 data Callbacks cb = Callbacks{
-  _blur :: Maybe (GenericEventData -> cb),
-  _click :: Maybe (GenericEventData -> cb),
-  _change :: Maybe (ValueChangedData -> cb),
-  _contextmenu :: Maybe (GenericEventData -> cb),
-  _dblclick :: Maybe (GenericEventData -> cb),
-  _error :: Maybe (GenericEventData -> cb),
-  _focus :: Maybe (GenericEventData -> cb),
-  _focusin :: Maybe (GenericEventData -> cb),
-  _focusout :: Maybe (GenericEventData -> cb),
-  _hover :: Maybe (GenericEventData -> cb),
-  _keydown :: Maybe (KeyboardEventData -> cb),
-  _keypress :: Maybe (KeyboardEventData -> cb),
-  _keyup :: Maybe (KeyboardEventData -> cb),
-  _load :: Maybe (GenericEventData -> cb),
-  _mousedown :: Maybe (GenericEventData -> cb),
-  _mouseenter :: Maybe (GenericEventData -> cb),
-  _mouseleave :: Maybe (GenericEventData -> cb),
-  _mousemove :: Maybe (GenericEventData -> cb),
-  _mouseout :: Maybe (GenericEventData -> cb),
-  _mouseover :: Maybe (GenericEventData -> cb),
-  _mouseup :: Maybe (GenericEventData -> cb),
-  _ready :: Maybe (GenericEventData -> cb),
-  _resize :: Maybe (GenericEventData -> cb),
-  _scroll :: Maybe (GenericEventData -> cb),
-  _select :: Maybe (GenericEventData -> cb),
-  _submit :: Maybe (GenericEventData -> cb),
-  _elementCreated :: Maybe (T.Text -> IO ()) -- callback for when this element has been inserted into the DOM. The supplied text is the id of the element.
+  _blur :: !(Maybe (GenericEventData -> cb)),
+  _click :: !(Maybe (GenericEventData -> cb)),
+  _change :: !(Maybe (ValueChangedData -> cb)),
+  _contextmenu :: !(Maybe (GenericEventData -> cb)),
+  _dblclick :: !(Maybe (GenericEventData -> cb)),
+  _error :: !(Maybe (GenericEventData -> cb)),
+  _focus :: !(Maybe (GenericEventData -> cb)),
+  _focusin :: !(Maybe (GenericEventData -> cb)),
+  _focusout :: !(Maybe (GenericEventData -> cb)),
+  _hover :: !(Maybe (GenericEventData -> cb)),
+  _keydown :: !(Maybe (KeyboardEventData -> cb)),
+  _keypress :: !(Maybe (KeyboardEventData -> cb)),
+  _keyup :: !(Maybe (KeyboardEventData -> cb)),
+  _load :: !(Maybe (GenericEventData -> cb)),
+  _mousedown :: !(Maybe (GenericEventData -> cb)),
+  _mouseenter :: !(Maybe (GenericEventData -> cb)),
+  _mouseleave :: !(Maybe (GenericEventData -> cb)),
+  _mousemove :: !(Maybe (GenericEventData -> cb)),
+  _mouseout :: !(Maybe (GenericEventData -> cb)),
+  _mouseover :: !(Maybe (GenericEventData -> cb)),
+  _mouseup :: !(Maybe (GenericEventData -> cb)),
+  _ready :: !(Maybe (GenericEventData -> cb)),
+  _resize :: !(Maybe (GenericEventData -> cb)),
+  _scroll :: !(Maybe (GenericEventData -> cb)),
+  _select :: !(Maybe (GenericEventData -> cb)),
+  _submit :: !(Maybe (GenericEventData -> cb)),
+  _elementCreated :: !(Maybe (T.Text -> IO ())) -- callback for when this element has been inserted into the DOM. The supplied text is the id of the element.
   }
   deriving (Functor)
 
@@ -143,16 +143,16 @@ data InsertWhere = InsertBefore Text | InsertAsChildOf Text | InsertAfter Text
   deriving (Eq, Show)
 
 data RenderingAction c =
-    DeleteElement{ _elementId :: ElementID }
-  | NewElement{ _insertWhere :: InsertWhere, _elemType :: Text, _elementId :: ElementID, _elemNamespace :: Text }
-  | SetTextContent{ _elementId :: ElementID, _text :: Text }
-  | RemoveAttribute{ _elementId :: ElementID, _attribute :: Text }
-  | SetAttribute{ _elementId :: ElementID, _attribute :: Text, _attrValue :: Text }
-  | SetGenericEventCallback{ _elementId :: ElementID, _callbackName :: Text, _genericEventCallback :: GenericEventData -> c }
-  | SetValueCallback{ _elementId :: ElementID, _callbackName :: Text, _valueChangedCallback :: ValueChangedData -> c }
-  | SetKeyEventCallback { _elementId :: ElementID, _callbackName :: Text, _keyEventCallback :: KeyboardEventData -> c }
-  | RemoveCallback{ _elementId :: ElementID, _callbackName :: Text }
-  | GenericIOAction{ _action :: IO () }
+    DeleteElement{ _elementId :: !ElementID }
+  | NewElement{ _insertWhere :: !InsertWhere, _elemType :: !Text, _elementId :: !ElementID, _elemNamespace :: !Text }
+  | SetTextContent{ _elementId :: !ElementID, _text :: !Text }
+  | RemoveAttribute{ _elementId :: !ElementID, _attribute :: !Text }
+  | SetAttribute{ _elementId :: !ElementID, _attribute :: !Text, _attrValue :: !Text }
+  | SetGenericEventCallback{ _elementId :: !ElementID, _callbackName :: !Text, _genericEventCallback :: !(GenericEventData -> c) }
+  | SetValueCallback{ _elementId :: !ElementID, _callbackName :: !Text, _valueChangedCallback :: !(ValueChangedData -> c) }
+  | SetKeyEventCallback { _elementId :: !ElementID, _callbackName :: !Text, _keyEventCallback :: !(KeyboardEventData -> c) }
+  | RemoveCallback{ _elementId :: !ElementID, _callbackName :: !Text }
+  | GenericIOAction{ _action :: !(IO ()) }
   | NoAction
   deriving (Functor)
 

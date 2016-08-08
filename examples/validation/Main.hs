@@ -77,7 +77,7 @@ theUI :: Form IO Text
 theUI t = [result] where
   validate t = if (T.null t) then Left "Must not be empty" else Right t
   result = container & children .~ [
-      row & children .~ [h1 "Validating inputs"] ++ (validatingTextInput validate "First name" t)
+      row & children .~ [h1 "Validating inputs"] ++ (validatingTextInput validate "First name" t) ++ [validatingTextInput validate "Last name" t]
     ]
 
 main :: IO ()

@@ -70,7 +70,7 @@ prop_delete_and_insert_elements_in_correct_order parent ch = and isExpected wher
 		DeleteElement i -> i == elmId
 		_ -> False
 	isInsert elmId command = case command of
-		NewElement _ _ i -> i == elmId
+		NewElement _ _ i _ -> i == elmId
 		_ -> False
 	isDeleteOrInsert command = case command of
 		DeleteElement{} -> True

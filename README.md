@@ -1,4 +1,6 @@
-# virtual-hom
+# virtual-hom 
+[![Build Status](https://travis-ci.org/j-mueller/virtual-hom.svg?branch=master)](https://travis-ci.org/j-mueller/virtual-hom)
+
 Haskell+GHCJS implementation of [virtual-dom](https://github.com/Matt-Esch/virtual-dom), mixed with a lens-based API for creating and composing user interfaces.
 
 ```[haskell]

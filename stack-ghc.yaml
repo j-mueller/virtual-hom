@@ -3,7 +3,8 @@
 resolver: lts-3.22
 packages:
 - '.'
-extra-deps: []
+extra-deps: 
+  - unification-fd-0.10.0.1
 flags:
   virtual-hom:
     js: false

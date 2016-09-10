@@ -33,6 +33,7 @@ library
   hs-source-dirs:      src
   exposed-modules:
     VirtualHom.Bootstrap,
+    VirtualHom.Components,
     VirtualHom.Element,
     VirtualHom.Html,
     VirtualHom.Rendering,

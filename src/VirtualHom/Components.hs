@@ -28,30 +28,30 @@ import Prelude hiding (div)
 -- React components have state and props.
 -- 
 
--- | Component with state `s` and inner state `p`.
-data Component s p m = Component {
-  _state :: s,
+-- | Component with state `p` (for Props)
+data Component p m = Component {
   _props :: p,
-  _render :: s -> p -> Elem ((s, p) -> m (s, p)) ()
+  _render :: p -> Elem (Component p m -> m (Component p m)) ()
   -- _eventHandlers :: () -- global event handlers for this component, TBD
 } 
 
 makeLenses ''Component
 
-myComp = component "" $ \props state ->
+myComp :: Monad m => String -> Component String m 
+myComp = component "" $ \state props ->
   div & children .~ []
     -- _ --zoomL innerProps otherComponent
     -- ]
 
-component :: s -> (s -> p -> Elem ((s, p) -> m (s, p)) ()) -> p -> Component s p m
-component initial f p = Component initial p f
+-- | Create a component with props `p` and inner state `s`
+component :: Functor m => s -> (s -> p -> Elem ((s, p) -> m (s, p)) ()) -> p -> Component p m
+component initialState f prps = Component prps $ inner initialState where
+  inner s p = mapCallbacks (transf s) $ f s p
+  transf s cb comp = fmap (\(s', p') -> component s' f p') $ cb (s, comp^.props) 
 
-renderComp :: Monad m => Component s p m -> [Elem ((Component s p m) -> m (Component s p m)) ()]
-renderComp comp = [mapCallbacks transf $ r s p] where
-  s = comp^.state
+renderComp :: Monad m => Component p m -> [Elem ((Component p m) -> m (Component p m)) ()]
+renderComp comp = [r p] where
   r = comp^.render
   p = comp^.props
-  -- transf :: ((s, p) -> m (s, p)) -> (Component s p m) -> m (Component s p m) ()
-  -- f is the 
-  transf f cmp = fmap (\(s, p) -> cmp & state .~ s & props .~ p) (f (cmp^.state, cmp^.props))  
+  -- transf f cmp = fmap (\p -> cmp & props .~ p) (f (cmp^.props))  
 

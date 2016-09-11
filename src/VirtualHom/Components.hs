@@ -55,5 +55,3 @@ renderComp comp = [mapCallbacks transf $ r s p] where
   -- f is the 
   transf f cmp = fmap (\(s, p) -> cmp & state .~ s & props .~ p) (f (cmp^.state, cmp^.props))  
 
--- zoomL :: Lens' p q -> Component s' q -> Layout m ()
--- zoomL = undefined 

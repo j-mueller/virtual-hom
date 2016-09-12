@@ -53,7 +53,7 @@ renderUI' opts view interp q state = do
   -- user-defined callback when individual elements are rendered
   let callback = opts^.actionHandler
   _ <- render callback ioActions
-  -- Wait for an update and apply it to the state
+  -- Wait for an update and apply it to the state 
   update <- atomically $ readTQueue q
   newState <- interp (update state)
   renderUI' opts' view interp q newState

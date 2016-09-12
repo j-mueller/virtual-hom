@@ -7,7 +7,8 @@ import Control.Monad.Cont
 
 import VirtualHom.Html
 import VirtualHom.Internal.Element
-import VirtualHom.View
+import VirtualHom.Internal.Rendering (RenderingOptions)
+import VirtualHom.View (renderUI)
 
 import Prelude hiding (div)
 
@@ -16,11 +17,8 @@ import Prelude hiding (div)
 -- React components have state and props.
 -- 
 
--- | Component with state `p` (for Props)
-data Component p m = Component {
-  _render :: p -> Elem (p -> m (p, Component p m)) ()
-  -- _eventHandlers :: () -- global event handlers for this component, TBD
-}
+-- | Component with external state `p` (for Props)
+newtype Component p m = Component { _render :: p -> Elem (p -> m (p, Component p m)) () }
 
 makeLenses ''Component
 
@@ -42,10 +40,11 @@ component initialState f = Component $ inner initialState where
   transf s cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (s, p)
 
 -- | Render a component inside another component
-within :: Functor m => Component p m -> ((p -> Elem (p -> m (p, Component p m)) ()) -> Component p m) -> Component p m
-within subC f = f render' where
-  render' = fmap (mapCallbacks transf) $ view render subC
-  transf ff p = fmap (\(p', c') -> (p', (c' `within` f))) $ ff p
+-- within :: Functor m => Component p m -> Lens' q p -> ((q -> Elem (q -> m q) ()) -> Component p m) -> Component p m
+-- within subC lns f = f $ fmap (mapCallbacks _) $ view render subC where
+  -- render' = fmap (mapCallbacks transf) $ view render subC
+  -- transf ::  (q -> m (q, Component q m)) -> q -> m q
+  --transf ff q = fmap (\(q', c') -> (p', (c' `within` f))) $ ff p
 
 -- | Generalise a component using a lens
 generalise :: Functor m => Lens' p q -> Component q m -> Component p m
@@ -53,10 +52,19 @@ generalise lns comp = Component render' where
   render' p = mapCallbacks transf $ (view render comp) (p^.lns)
   transf cb p = fmap (\(q', comp') -> (p & lns .~ q', generalise lns comp')) $ cb (p^.lns)
 
--- | Render an `InitialisedComponent`
-renderComp :: Monad m => InitialisedComponent p m -> [Elem ((InitialisedComponent p m) -> m (InitialisedComponent p m)) ()]
-renderComp ic = [mapCallbacks transf $ r initialProps] where
+-- | View that shows an initialised component
+compView :: Functor m => InitialisedComponent p m -> [Elem ((InitialisedComponent p m) -> m (InitialisedComponent p m)) ()]
+compView ic = [mapCallbacks transf $ r initialProps] where
   initialProps = ic^.props
   r = ic^.comp.render
   transf f = fmap (uncurry InitialisedComponent) . f . view props
 
+-- | Render a `Component p m` , given an initial state `p`
+renderComponent :: Functor m =>
+  RenderingOptions ->
+  Component p m ->
+  (forall a. m a -> IO a) ->
+  p ->
+  IO ()
+renderComponent opts comp interp p = renderUI opts compView interp c' where  
+  c' = InitialisedComponent p comp

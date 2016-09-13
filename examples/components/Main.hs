@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 module Main where
 
 import Control.Lens hiding (children, transform)
@@ -13,18 +14,24 @@ import VirtualHom.Rendering(renderingOptions)
 import VirtualHom.Bootstrap(container, row, btnDefault)
 import VirtualHom.Components
 
-counterComp = component 0 $ \state () -> 
+counterComp :: Monad m => Component () m
+counterComp = Component $ go 0 where
+  go state () =  
     row & children .~ [
       p & content .~ ("This button has been clicked " <> (T.pack $ show state) <> " times"),
       btnDefault 
         & content .~ "Click" 
-        & callbacks . click ?~ (\_ (a, ()) -> return (succ a, ()))
+        & callbacks . click ?~ (\_ p -> return (p, Component $ go $ succ state))
     ] 
 
-theUI = counterComp `within` _2 $ \counter1 ->
-        counterComp `within` _2 $ \counter2 ->
-        component () $ \() () ->
-          counter1 ()
+theUI :: Monad m => Component () m
+theUI = within counterComp $ \counter1 ->
+        within counterComp $ \counter2 ->
+          Component $ \_ ->
+            container & children .~ [
+              counter1 (),
+              counter2 ()
+            ]
 
 main :: IO ()
 main = do

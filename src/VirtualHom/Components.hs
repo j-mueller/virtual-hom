@@ -29,22 +29,11 @@ data InitialisedComponent p m = InitialisedComponent {
 
 makeLenses ''InitialisedComponent
 
-myComp :: Monad m => Component String m 
-myComp = component "" $ \state props ->
-  div & children .~ []
-
--- | Create a component with props `p` and inner state `s`
-component :: Functor m => s -> (s -> p -> Elem ((s, p) -> m (s, p)) ()) -> Component p m
-component initialState f = Component $ inner initialState where
-  inner s = mapCallbacks (transf s) . f s
-  transf s cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (s, p)
-
 -- | Render a component inside another component
--- within :: Functor m => Component p m -> Lens' q p -> ((q -> Elem (q -> m q) ()) -> Component p m) -> Component p m
--- within subC lns f = f $ fmap (mapCallbacks _) $ view render subC where
-  -- render' = fmap (mapCallbacks transf) $ view render subC
-  -- transf ::  (q -> m (q, Component q m)) -> q -> m q
-  --transf ff q = fmap (\(q', c') -> (p', (c' `within` f))) $ ff p
+within :: Functor m => Component p m -> ((p -> Elem (p -> m (p, Component p m)) ()) -> Component p m) -> Component p m
+within subC f = f $ fmap transf r' where
+  r' = subC^.render
+  transf elm = mapCallbacks (\cb' p -> fmap (\(p', comp') -> (p', within comp' f)) $ cb' p) elm
 
 -- | Generalise a component using a lens
 generalise :: Functor m => Lens' p q -> Component q m -> Component p m

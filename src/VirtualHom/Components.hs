@@ -5,11 +5,13 @@ module VirtualHom.Components where
 import Control.Lens hiding (children)
 import Control.Monad.Cont
 
-import VirtualHom.Html
 import VirtualHom.Internal.Element
-import VirtualHom.Internal.Rendering (RenderingOptions)
-import VirtualHom.View (renderUI)
+import VirtualHom.Internal.FFI (render)
+import VirtualHom.Internal.Rendering (RenderingOptions, actionHandler, prepare)
+import VirtualHom.Html (div)
 
+import Control.Concurrent.STM (atomically)
+import Control.Concurrent.STM.TQueue
 import Prelude hiding (div)
 
 -- Components.
@@ -18,42 +20,38 @@ import Prelude hiding (div)
 -- 
 
 -- | Component with external state `p` (for Props)
-newtype Component p m = Component { _render :: p -> Elem (p -> m (p, Component p m)) () }
+newtype Component m a = Component { _getComponent :: a -> [Elem (a -> m (a, Component m a)) ()] }
 
 makeLenses ''Component
 
-data InitialisedComponent p m = InitialisedComponent {
-  _props :: p,
-  _comp :: Component p m
-}
-
-makeLenses ''InitialisedComponent
-
--- | Render a component inside another component
-within :: Functor m => Component p m -> ((p -> Elem (p -> m (p, Component p m)) ()) -> Component p m) -> Component p m
-within subC f = f $ fmap transf r' where
-  r' = subC^.render
-  transf elm = mapCallbacks (\cb' p -> fmap (\(p', comp') -> (p', within comp' f)) $ cb' p) elm
-
--- | Generalise a component using a lens
-generalise :: Functor m => Lens' p q -> Component q m -> Component p m
-generalise lns comp = Component render' where
-  render' p = mapCallbacks transf $ (view render comp) (p^.lns)
-  transf cb p = fmap (\(q', comp') -> (p & lns .~ q', generalise lns comp')) $ cb (p^.lns)
-
--- | View that shows an initialised component
-compView :: Functor m => InitialisedComponent p m -> [Elem ((InitialisedComponent p m) -> m (InitialisedComponent p m)) ()]
-compView ic = [mapCallbacks transf $ r initialProps] where
-  initialProps = ic^.props
-  r = ic^.comp.render
-  transf f = fmap (uncurry InitialisedComponent) . f . view props
+-- | Create a component with internal state `s` and external state `p`
+component :: Functor m => s -> (s -> p -> [Elem ((s, p) -> m (s, p)) ()]) -> Component m p
+component initialState f = Component $ \p -> fmap (mapCallbacks transf) $ f initialState p where
+  transf cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (initialState, p)   
 
 -- | Render a `Component p m` , given an initial state `p`
+renderComponent' :: Functor m =>
+  RenderingOptions ->
+  Component m a ->
+  (forall p. m p -> IO p) ->
+  TQueue (a -> m (a, Component m a)) ->
+  a ->
+  IO ()
+renderComponent' opts comp interp queue props = do
+  -- render the current view
+  let (actions, opts') = prepare opts $ div & children .~ (view getComponent comp $ props)
+  let ioActions = fmap (fmap $ atomically . writeTQueue queue) actions
+  let callback = opts^.actionHandler
+  _ <- render callback ioActions
+  (newProps, nextComponent) <- (atomically $ readTQueue queue) >>= (\f -> interp $ f props)
+  renderComponent' opts' nextComponent interp queue newProps
+
 renderComponent :: Functor m =>
   RenderingOptions ->
-  Component p m ->
-  (forall a. m a -> IO a) ->
-  p ->
+  Component m a ->
+  (forall p. m p -> IO p) ->
+  a ->
   IO ()
-renderComponent opts comp interp p = renderUI opts compView interp c' where  
-  c' = InitialisedComponent p comp
+renderComponent opts comp interp props = do
+  q <- newTQueueIO
+  renderComponent' opts comp interp q props

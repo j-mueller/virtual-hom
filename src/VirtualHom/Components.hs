@@ -27,7 +27,12 @@ makeLenses ''Component
 -- | Create a component with internal state `s` and external state `p`
 component :: Functor m => s -> (s -> p -> [Elem ((s, p) -> m (s, p)) ()]) -> Component m p
 component initialState f = Component $ \p -> fmap (mapCallbacks transf) $ f initialState p where
-  transf cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (initialState, p)   
+  transf cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (initialState, p) 
+
+within :: Functor m => Component m p -> ((p -> [Elem (p -> m (p, Component m p)) ()]) -> Component m p) -> Component m p
+within comp f = f rnd where
+  rnd = fmap (fmap (mapCallbacks transf)) $ view getComponent comp
+  transf cb = fmap (fmap (\(p', c') -> (p', within c' f))) cb
 
 -- | Render a `Component p m` , given an initial state `p`
 renderComponent' :: Functor m =>

@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
 module VirtualHom.Components where
 
 import Control.Lens hiding (children)
@@ -52,7 +51,7 @@ times lft rght f = Component $ f rndLft rndRght where
 class CombineComponent c where
   type CompEff c :: * -> *
   type CompVal c :: *
-  type SubComponent c = sc | sc -> c
+  type SubComponent c
   apply :: c -> (SubComponent c -> CompVal c -> [Elem (CompVal c -> (CompEff c) (CompVal c, Component (CompEff c) (CompVal c))) ()]) -> Component (CompEff c) (CompVal c)
   getSub :: c -> SubComponent c
   mapResult :: (Component (CompEff c) (CompVal c) -> Component (CompEff c) (CompVal c)) -> SubComponent c -> SubComponent c

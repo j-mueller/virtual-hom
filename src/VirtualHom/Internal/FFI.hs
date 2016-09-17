@@ -136,8 +136,8 @@ renderAction = undefined
 #endif
 
 -- | Perform a bunch of renderingActions
-render :: (forall c. RenderingAction c -> IO ()) -> [RenderingAction (IO ())] -> IO ()
+render :: (RenderingAction () -> IO ()) -> [RenderingAction (IO ())] -> IO ()
 render cb = fmap (const ()) . sequence . fmap doRender . filter (not . isNop) where
   isNop NoAction  = True
   isNop _         = False
-  doRender a = renderAction a >> cb a
+  doRender a = renderAction a >> cb (fmap (const ()) a)

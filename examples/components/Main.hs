@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
 module Main where
 
 import Control.Lens hiding (children, transform)
@@ -23,17 +22,21 @@ counterComp = component 0 $ \state _ ->
         & callbacks . click ?~ (\_ (s, p) -> return (succ s, p))
     ]]
 
-theUI :: Monad m => Component m ()
-theUI = within counterComp $ \counter1 ->
-        within counterComp $ \counter2 ->
-           Component $ \_ ->
-             [container & children .~ 
+-- theUI = times counterComp counterComp $ \counter1 counter2 () -> 
+--           [container & children .~ 
+--                (counter1 () ++
+--                counter2 ())
+--              ]
+
+theUI2 = (counterComp, counterComp) `apply` \counter1 counter2 p ->
+    [container & children .~ 
                (counter1 () ++
                counter2 ())
-             ]
+             ] 
 
 main :: IO ()
 main = do
   let options = renderingOptions "virtual-hom"
   let interp = return . runIdentity
-  renderComponent options theUI interp ()
+  renderComponent options theUI2 interp ()
+      

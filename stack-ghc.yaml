@@ -1,6 +1,6 @@
 # This file exists only for generating the docs, the package itself will not
 # work outside of GHCJS (see FFI.hs for what is missing)
-resolver: lts-3.22
+resolver: lts-7.0
 packages:
 - '.'
 extra-deps: []

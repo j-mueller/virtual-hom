@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 module VirtualHom.Components where
 
 import Control.Lens hiding (children)
@@ -51,7 +52,7 @@ times lft rght f = Component $ f rndLft rndRght where
 class CombineComponent c where
   type CompEff c :: * -> *
   type CompVal c :: *
-  type SubComponent c :: *
+  type SubComponent c = sc | sc -> c
   apply :: c -> (SubComponent c -> CompVal c -> [Elem (CompVal c -> (CompEff c) (CompVal c, Component (CompEff c) (CompVal c))) ()]) -> Component (CompEff c) (CompVal c)
   getSub :: c -> SubComponent c
   mapResult :: (Component (CompEff c) (CompVal c) -> Component (CompEff c) (CompVal c)) -> SubComponent c -> SubComponent c
@@ -70,17 +71,10 @@ instance CombineComponent c => CombineComponent (c, c) where
   type CompVal (c, c) = CompVal c
   type SubComponent (c, c) = (SubComponent c, SubComponent c)
   apply (l, r) f = Component $ f (rndLeft, rndRight) where
-    rndLeft = undefined
-    rndRight = undefined
+    rndLeft = mapResult (\c' -> apply (c', r) f) $ getSub l
+    rndRight = mapResult (\c' -> apply (l, c') f) $ getSub r
   getSub (l, r) = (getSub l, getSub r)
   mapResult f (l, r) = (mapResult f l, mapResult f r)
---    type SubComponent (c, c) m p = (SubComponent c m p, SubComponent c m p)
---    apply (cl, cr) f = Component $ f (appLeft, appRight) where
---      -- appLeft :: Applicator c
---      appLeft = undefined
---      -- appRight :: Applicator c  
---      appRight = undefined 
---    getSub (l, r) = (getSub l, getSub r)
 
 -- Render a `Component p m` , given an initial state `p`
 renderComponent' :: Functor m =>

@@ -38,42 +38,31 @@ component :: Functor m => s -> (s -> p -> [Elem ((s, p) -> m (s, p)) ()]) -> Com
 component initialState f = Component $ \p -> fmap (mapCallbacks transf) $ f initialState p where
   transf cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (initialState, p) 
 
+type SubComponent m p = p -> [Elem (p -> m (p, Component m p)) ()]
+
 times :: Functor m => 
   Component m p -> 
   Component m p -> 
-  ((p -> [Elem (p -> m (p, Component m p)) ()]) -> (p -> [Elem (p -> m (p, Component m p)) ()]) -> p -> [Elem (p -> m (p, Component m p)) ()]) -> 
+  (SubComponent m p -> SubComponent m p -> SubComponent m p) -> 
   Component m p
 times lft rght f = Component $ f rndLft rndRght where
   mapResult f = fmap (fmap (mapCallbacks (fmap (fmap (fmap f)))))
   rndLft  = mapResult (\c' -> times c' rght f) $ view getComponent lft
   rndRght = mapResult (\c' -> times lft c'  f) $ view getComponent rght
 
-class CombineComponent c where
-  type CompEff c :: * -> *
-  type CompVal c :: *
-  type SubComponent c
-  apply :: c -> (SubComponent c -> CompVal c -> [Elem (CompVal c -> (CompEff c) (CompVal c, Component (CompEff c) (CompVal c))) ()]) -> Component (CompEff c) (CompVal c)
-  getSub :: c -> SubComponent c
-  mapResult :: (Component (CompEff c) (CompVal c) -> Component (CompEff c) (CompVal c)) -> SubComponent c -> SubComponent c
-
-instance Functor m => CombineComponent (Component m p) where
-  type CompEff (Component m p) = m
-  type CompVal (Component m p) = p
-  type SubComponent (Component m p) = p -> [Elem (p -> m (p, Component m p)) ()]
-  apply (Component r) f = Component $ f rnd where
-    rnd = fmap (fmap (mapCallbacks (fmap (fmap (fmap (\c' -> apply c' f)))))) r
-  getSub (Component r) = r
+times3 :: Functor m =>
+  Component m p ->
+  Component m p ->
+  Component m p ->
+  (SubComponent m p -> SubComponent m p -> SubComponent m p -> SubComponent m p) ->
+  Component m p
+times3 lft m rght f = Component $ f rndLft rndM rndRght where
   mapResult f = fmap (fmap (mapCallbacks (fmap (fmap (fmap f)))))
+  rndLft  = mapResult (\c' -> times3 c'  m  rght f) $ view getComponent lft
+  rndM    = mapResult (\c' -> times3 lft c' rght f) $ view getComponent m
+  rndRght = mapResult (\c' -> times3 lft m  c'   f) $ view getComponent rght
 
-instance CombineComponent c => CombineComponent (c, c) where
-  type CompEff (c, c) = CompEff c
-  type CompVal (c, c) = CompVal c
-  type SubComponent (c, c) = (SubComponent c, SubComponent c)
-  apply (l, r) f = Component $ f (rndLeft, rndRight) where
-    rndLeft = mapResult (\c' -> apply (c', r) f) $ getSub l
-    rndRight = mapResult (\c' -> apply (l, c') f) $ getSub r
-  getSub (l, r) = (getSub l, getSub r)
-  mapResult f (l, r) = (mapResult f l, mapResult f r)
+
 
 -- Render a `Component p m` , given an initial state `p`
 renderComponent' :: Functor m =>

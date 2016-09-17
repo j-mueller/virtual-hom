@@ -22,17 +22,13 @@ counterComp = component 0 $ \state _ ->
         & callbacks . click ?~ (\_ (s, p) -> return (succ s, p))
     ]]
 
--- theUI = times counterComp counterComp $ \counter1 counter2 () -> 
---           [container & children .~ 
---                (counter1 () ++
---                counter2 ())
---              ]
-
-theUI2 = (counterComp, counterComp) `apply` \counter1 counter2 p ->
-    [container & children .~ 
+theUI = times3 counterComp counterComp counterComp $ \counter1 counter2 counter3 () -> 
+          [container & children .~ 
                (counter1 () ++
-               counter2 ())
-             ] 
+               counter2 () ++ 
+              counter3 ())
+             ]
+
 
 main :: IO ()
 main = do

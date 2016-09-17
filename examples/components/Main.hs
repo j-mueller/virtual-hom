@@ -29,10 +29,9 @@ theUI = times3 counterComp counterComp counterComp $ \counter1 counter2 counter3
               counter3 ())
              ]
 
-
 main :: IO ()
 main = do
   let options = renderingOptions "virtual-hom"
   let interp = return . runIdentity
-  renderComponent options theUI2 interp ()
+  renderComponent options theUI interp ()
       

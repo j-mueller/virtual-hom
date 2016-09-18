@@ -28,11 +28,6 @@ newtype Component m a = Component { _getComponent :: a -> [Elem (a -> m (a, Comp
 
 makeLenses ''Component
 
-generalise :: Functor m => Component m p -> Lens' q p -> Component m q
-generalise comp lns = Component rnd' where
-  rnd' q = fmap (mapCallbacks transf) $ (view getComponent comp) (q^.lns)
-  transf cb q = fmap (\(p', comp') -> (q & lns .~ p', generalise comp' lns)) $ cb $ view lns q
-
 -- | Create a component with internal state `s` and external state `p`
 component :: Functor m => s -> (s -> p -> [Elem ((s, p) -> m (s, p)) ()]) -> Component m p
 component initialState f = Component $ \p -> fmap (mapCallbacks transf) $ f initialState p where
@@ -77,6 +72,18 @@ times4 c1 c2 c3 c4 f = Component $ f rnd1 rnd2 rnd3 rnd4 where
   rnd2 = mapResult (\c2' -> times4 c1 c2' c3 c4 f) $ view getComponent c2
   rnd3 = mapResult (\c3' -> times4 c1 c2 c3' c4 f) $ view getComponent c3
   rnd4 = mapResult (\c4' -> times4 c1 c2 c3 c4' f) $ view getComponent c4
+
+-- | Integrate a component of only part of an application state
+specialise :: Functor f => Lens' a b -> Component f b -> Component f a
+specialise l c = Component rnd' where
+  rnd' a = fmap (mapCallbacks inner) $ view getComponent c $ view l a
+  inner cb a = fmap (\(b, compB) -> (a & l .~ b, specialise l compB)) $ cb $ view l a
+
+-- | Show a component only if a prism gets a value
+on :: Functor f => Prism' a b -> Component f b -> Component f a
+on p v = Component $ \a -> withPrism p $ \_ from ->
+  either (const []) (\b -> fmap (mapCallbacks (inner b)) $ view getComponent v $ b) $ from a where
+  inner b cb a = fmap (\(b', compB') -> (a & p .~ b', on p compB')) $ cb b
 
 -- Render a `Component p m` , given an initial state `p`
 renderComponent' :: Functor m =>

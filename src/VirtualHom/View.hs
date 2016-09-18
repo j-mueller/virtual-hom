@@ -62,7 +62,7 @@ renderUI' opts view interp q state = do
 specialise :: Monad m => Lens' a b -> View m b -> View m a
 specialise l v = fmap (first $ mapMOf l) . v . view l
 
--- | Show a view only if a prism gets a value`
+-- | Show a view only if a prism gets a value
 on :: Monad m => Prism' a b -> View m b -> View m a
 on p v a = withPrism p $ \_ from ->
   either (const []) (fmap (first $ mapMOf p) . v) $ from a

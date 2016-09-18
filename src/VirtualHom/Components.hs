@@ -58,11 +58,25 @@ times3 :: Functor m =>
   Component m p
 times3 lft m rght f = Component $ f rndLft rndM rndRght where
   mapResult f = fmap (fmap (mapCallbacks (fmap (fmap (fmap f)))))
+  -- TODO: Replace with tuples and lenses ?
+  -- TODO: No more newtype for component
   rndLft  = mapResult (\c' -> times3 c'  m  rght f) $ view getComponent lft
   rndM    = mapResult (\c' -> times3 lft c' rght f) $ view getComponent m
   rndRght = mapResult (\c' -> times3 lft m  c'   f) $ view getComponent rght
 
-
+times4 :: Functor m =>
+  Component m p ->
+  Component m p ->
+  Component m p ->
+  Component m p ->
+  (SubComponent m p -> SubComponent m p -> SubComponent m p -> SubComponent m p -> SubComponent m p) ->
+  Component m p
+times4 c1 c2 c3 c4 f = Component $ f rnd1 rnd2 rnd3 rnd4 where
+  mapResult f = fmap (fmap (mapCallbacks (fmap (fmap (fmap f)))))
+  rnd1 = mapResult (\c1' -> times4 c1' c2 c3 c4 f) $ view getComponent c1
+  rnd2 = mapResult (\c2' -> times4 c1 c2' c3 c4 f) $ view getComponent c2
+  rnd3 = mapResult (\c3' -> times4 c1 c2 c3' c4 f) $ view getComponent c3
+  rnd4 = mapResult (\c4' -> times4 c1 c2 c3 c4' f) $ view getComponent c4
 
 -- Render a `Component p m` , given an initial state `p`
 renderComponent' :: Functor m =>

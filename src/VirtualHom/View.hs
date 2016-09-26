@@ -53,7 +53,7 @@ renderUI' opts view interp q state = do
   -- user-defined callback when individual elements are rendered
   let callback = opts^.actionHandler
   _ <- render callback ioActions
-  -- Wait for an update and apply it to the state
+  -- Wait for an update and apply it to the state 
   update <- atomically $ readTQueue q
   newState <- interp (update state)
   renderUI' opts' view interp q newState
@@ -62,7 +62,7 @@ renderUI' opts view interp q state = do
 specialise :: Monad m => Lens' a b -> View m b -> View m a
 specialise l v = fmap (first $ mapMOf l) . v . view l
 
--- | Show a view only if a prism gets a value`
+-- | Show a view only if a prism gets a value
 on :: Monad m => Prism' a b -> View m b -> View m a
 on p v a = withPrism p $ \_ from ->
   either (const []) (fmap (first $ mapMOf p) . v) $ from a

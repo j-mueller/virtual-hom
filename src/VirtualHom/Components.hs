@@ -29,9 +29,10 @@ newtype Component m a = Component { _getComponent :: a -> [Elem (a -> m (a, Comp
 
 makeLenses ''Component
 
-instance Monoid (Component m a) where
+instance Functor m => Monoid (Component m a) where
   mempty = Component $ const mempty
-  mappend l r = Component $ (<>) <$> (view getComponent l) <*> (view getComponent r)
+  mappend l r = component (l, r) cmb where 
+    cmb = (<>) <$> subComponent _2 (_1._1) <*> subComponent _2 (_1._2)
 
 -- | Create a component with internal state `s` and external state `p`
 component :: Functor m => s -> ((s, p) -> [Elem ((s, p) -> m (s, p)) ()]) -> Component m p

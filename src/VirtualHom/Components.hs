@@ -38,6 +38,11 @@ component :: Functor m => s -> ((s, p) -> [Elem ((s, p) -> m (s, p)) ()]) -> Com
 component initialState f = Component $ \p -> fmap (mapCallbacks transf) $ f (initialState, p) where
   transf cb p = fmap (\(s', p') -> (p', component s' f)) $ cb (initialState, p) 
 
+-- | Create a component with external state `p`
+component' :: Functor m => (p -> [Elem (p -> m p) ()]) -> Component m p
+component' f = Component $ \p -> fmap (mapCallbacks transf) $ f p where
+  transf cb p = fmap (\p' -> (p', component' f)) $ cb p
+
 -- | Change the type of a component using a lens.
 specialise :: Functor f => Lens' a b -> Component f b -> Component f a
 specialise l c = Component rnd' where

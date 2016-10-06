@@ -13,8 +13,10 @@ import VirtualHom.Internal.FFI (render)
 import VirtualHom.Internal.Rendering (RenderingOptions, actionHandler, prepare)
 import VirtualHom.Html (div)
 
+import Control.Applicative
 import Control.Concurrent.STM (atomically)
 import Control.Concurrent.STM.TQueue
+import Data.Monoid
 import Prelude hiding (div)
 
 -- Components.
@@ -26,6 +28,10 @@ import Prelude hiding (div)
 newtype Component m a = Component { _getComponent :: a -> [Elem (a -> m (a, Component m a)) ()] }
 
 makeLenses ''Component
+
+instance Monoid (Component m a) where
+  mempty = Component $ const mempty
+  mappend l r = Component $ (<>) <$> (view getComponent l) <*> (view getComponent r)
 
 -- | Create a component with internal state `s` and external state `p`
 component :: Functor m => s -> ((s, p) -> [Elem ((s, p) -> m (s, p)) ()]) -> Component m p

@@ -29,12 +29,14 @@ theUI i = [container & children .~ [
   ]
 ```
 
+## Documentation
+
+- Slides from my lightning talk at Haskell Exchange 2016: https://github.com/j-mueller/talks/blob/master/2016-10-haskell-exchange/2016-10-07-virtual-hom.pdf
+- Example project (ready to build): https://github.com/j-mueller/virtual-hom-example
+
 ## Status of Project
 
 The virtual-dom part is functional. However, since I've built this to support another project of mine, I haven't spent much time on providing a complete list of constructors for all dom elements. So it definitely needs some polishing before it can be released properly. In the meantime, you can build any kind of element directly, look at `Html.hs` for examples.
-
-A working example (ready to build with stack) can be found here: https://github.com/j-mueller/virtual-hom-example
-
 
 ### Comparison of virtual-dom parts with their equivalents in virtual-hom:
 

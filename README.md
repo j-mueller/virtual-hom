@@ -29,15 +29,18 @@ theUI i = [container & children .~ [
   ]
 ```
 
-Comparison of virtual-dom parts with their equivalents in virtual-hom:
+## Status of Project
+
+The virtual-dom part is functional. However, since I've built this to support another project of mine, I haven't spent much time on providing a complete list of constructors for all dom elements. So it definitely needs some polishing before it can be released properly. In the meantime, you can build any kind of element directly, look at `Html.hs` for examples.
+
+A working example (ready to build with stack) can be found here: https://github.com/j-mueller/virtual-hom-example
+
+
+### Comparison of virtual-dom parts with their equivalents in virtual-hom:
 
 - **vdom**, a render and patch algorithm for vtree: See `prepare` and `render` in `Rendering.hs`
 - **vtree**, a realtime diff algorithm: See `diff` in `Rendering.hs`. (Not sure if it qualifies as "realtime")
 - **virtual-hyperscript**, a DSL for creating virtual trees: Not really a DSL here, it's the `Elem cb a` data type in `Element.hs`, and constructors in `Html.hs`
-
-## Status of Project
-
-The virtual-dom part is functional. However, since I've built this to support another project of mine, I haven't spent much time on providing a complete list of constructors for all dom elements. So it definitely needs some polishing before it can be released properly. In the meantime, you can build any kind of element directly, look at `Html.hs` for examples.
 
 ### TO DO:
 

@@ -72,3 +72,8 @@ BSD3
 ## Contributions
 
 Bug reports, pull requests, feature requests are welcome
+
+
+## Ideas etc
+
+* Prisms for validation 

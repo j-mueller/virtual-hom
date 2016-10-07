@@ -93,3 +93,11 @@ renderComponent :: Functor m =>
 renderComponent opts comp interp props = do
   q <- newTQueueIO
   renderComponent' opts comp interp q props
+
+-- | Lens for the props of a component
+props :: Lens' (a, b) b
+props = _2
+
+-- | Lens for the state of a component
+state :: Lens' (a, b) a
+state = _1

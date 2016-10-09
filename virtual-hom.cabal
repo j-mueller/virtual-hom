@@ -40,15 +40,18 @@ library
     VirtualHom.View,
     VirtualHom.Internal.Element,
     VirtualHom.Internal.FFI,
+    VirtualHom.Internal.Handler,
     VirtualHom.Internal.Rendering
   build-depends:
       base >= 4.7 && < 5
     , bifunctors >= 4.2.1 && < 6
     , containers  >= 0.5.5 && < 0.5.8
+    , free >= 4.12 && < 4.13
     , lens >= 4.6 && < 5
     , mtl >= 2.1.3.1 && < 2.3
     , stm >= 2.4 && < 2.5
     , text >= 1.2 && < 1.3
+    , transformers >= 0.4.2 && < 0.5.3
   if flag(js)
     build-depends:
       ghcjs-base >= 0.2.0.0,

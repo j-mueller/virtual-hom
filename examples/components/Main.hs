@@ -10,23 +10,24 @@ import qualified Data.Text as T
 import Prelude hiding (div)
 
 import VirtualHom.Element
+import VirtualHom.Internal.Handler
 import VirtualHom.Html hiding (content, main)
 import VirtualHom.Rendering(renderingOptions)
 import VirtualHom.Bootstrap(container, row, btnDefault)
 import VirtualHom.Components
 
-counterComp :: Monad m => Component m ()
+counterComp :: Component ()
 counterComp = component 0 $ \(state, _) -> 
     [row & children .~ [
       p & content .~ ("This button has been clicked " <> (T.pack $ show state) <> " times"),
       btnDefault 
         & content .~ "Click" 
-        & callbacks . click ?~ (\_ (s, p) -> return (succ s, p))
+        & callbacks . click ?~ (\_ -> update $ over _1 succ)
     ]]
 
-data CompState m = CompState {
-  _counter1 :: Component m (),
-  _counter2 :: Component m ()
+data CompState = CompState {
+  _counter1 :: Component (),
+  _counter2 :: Component ()
 }
 
 makeLenses ''CompState
@@ -39,6 +40,5 @@ theUI = component initialState $ \tpl -> [container & children .~ (inner tpl)] w
 main :: IO ()
 main = do
   let options = renderingOptions "virtual-hom"
-  let interp = return . runIdentity
-  renderComponent options theUI interp ()
+  renderComponent options theUI ()
       
